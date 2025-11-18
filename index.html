@@ -18,6 +18,23 @@
     padding: 0;
   }
 
+  /* HEADER (TÍTULO + LOGO) */
+  #header {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  #header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #000;
+  }
+
+  #header img {
+    max-width: 150px;
+    margin-top: 10px;
+  }
+
   /* CONTENEDOR GENERAL */
   .wrapper {
     max-width: 500px;
@@ -32,14 +49,13 @@
   #soup-container {
     width: 100%;
     padding: 15px;
-    padding-top: 20px;          /* espacio interno */
-    margin-top: 250px;           /* espacio fijo debajo del título + logo */
+    padding-top: 20px;
     background: transparent;
     border: 3px solid black;
     border-radius: 12px;
     box-sizing: border-box;
     overflow: hidden;
-    position: relative;          /* mantiene flujo normal */
+    position: relative; /* mantiene flujo normal */
   }
 
   /* GRILLA */
@@ -122,6 +138,11 @@
 </style>
 </head>
 <body>
+
+<div id="header">
+  <h1>Sopa de Letras</h1>
+  <img src="logo-eurifirm.png" alt="Logo Eurifirm" id="logo">
+</div>
 
 <div class="wrapper">
 
@@ -326,6 +347,19 @@ function renderPistas() {
 }
 
 /* ===========================================
+   AJUSTAR GRILLA DEBAJO DEL HEADER
+=========================================== */
+function ajustarGrillaDebajoDelTitulo() {
+  const header = document.getElementById('header');
+  const soupContainer = document.getElementById('soup-container');
+
+  if (header && soupContainer) {
+    const alturaHeader = header.offsetHeight;
+    soupContainer.style.marginTop = alturaHeader + 20 + 'px'; // +20px separación
+  }
+}
+
+/* ===========================================
    INIT
 =========================================== */
 function iniciar() {
@@ -339,11 +373,13 @@ function iniciar() {
   llenarRandom();
   renderGrid();
   renderPistas();
+  ajustarGrillaDebajoDelTitulo();
 }
 
-iniciar();
+// Ajustar al cargar y al redimensionar
+window.addEventListener('load', iniciar);
+window.addEventListener('resize', ajustarGrillaDebajoDelTitulo);
 </script>
 
 </body>
 </html>
-
