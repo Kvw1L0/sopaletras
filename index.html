@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sopa de Letras</title>
 <style>
+
+  #panel {
+  position: sticky;
+  top: 80px;        /* Ajusta dependiendo de tu título */
+  z-index: 10;      /* Para que se vea sobre el scroll */
+}
+
+  
   body {
     font-family: Arial, sans-serif;
     background: url('fondo.jpg') center/cover no-repeat fixed;
@@ -25,6 +33,7 @@
     margin-bottom: 20px;
     user-select: none;
     padding: 20px; /* agregado para que no choquen con el borde */
+    margin-bottom: 20px; /* separa grilla de pistas */
   }
   .cell {
     width: 30px;
@@ -46,12 +55,15 @@
     position: sticky;
     top: 500px; /* ajusta según dónde esté tu título */
     z-index: 10;
-    width: 90%;
-    max-width: 600px;
+    width: 90%;    
     margin-top: 150px; 
     background: white;
     padding: 15px;
     border-radius: 6px;
+    max-height: 300px;     /* evita que crezca infinito */
+    overflow-y: auto;      /* scroll interno si es muy largo */
+   
+ 
   }
   #clues li {
     margin: 8px 0;
@@ -75,9 +87,10 @@
 </style>
 </head>
 <body>
-
-<div id="grid"></div>
-<ul id="clues"></ul>
+<div id="panel">
+  <div id="grid"></div>
+  <ul id="clues"></ul>
+<div id>
 <button id="whatsappBtn">Enviar por WhatsApp</button>
 <script>
 // >>> NÚMERO DE WHATSAPP CONFIGURADO <<<
