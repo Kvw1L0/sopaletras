@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,42 +7,50 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
+      background: url('fondo.jpg') no-repeat center center fixed;
+      background-size: cover;
       margin: 0;
       padding: 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     h1 {
       font-size: 32px;
       margin-bottom: 30px;
-      color: #333;
+      color: #fff;
+      text-shadow: 0 0 5px black;
     }
+
     #container {
       display: flex;
       flex-direction: row;
       gap: 40px;
       align-items: flex-start;
     }
+
     #board-container {
-      background: #fff;
+      background: #ffffffcc;
       padding: 20px;
       border-radius: 16px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
       border: 3px solid transparent;
       transition: border-color 0.6s ease, box-shadow 0.6s ease;
     }
+
     #board-container.win {
       border-color: gold;
       box-shadow: 0 0 20px 5px gold;
     }
+
     #board {
       display: grid;
       grid-template-columns: repeat(7, 48px);
       grid-template-rows: repeat(7, 48px);
       gap: 6px;
     }
+
     .cell {
       width: 48px;
       height: 48px;
@@ -61,37 +68,46 @@
       color: #333;
       transition: background 0.3s, border-color 0.3s;
     }
+
     .selected {
       background: #e0f0ff;
       border-color: #7dbfff;
     }
+
     .found {
       background: #cdeccd !important;
       color: #1a1a1a;
     }
+
     #word-list {
       font-size: 18px;
       padding: 20px;
-      background: #fff;
+      background: #ffffffcc;
       border-radius: 16px;
       border: 1px solid #ccc;
-      min-width: 140px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      min-width: 200px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
     }
+
     #word-list li {
       margin-bottom: 10px;
       list-style: none;
+      font-weight: 500;
     }
+
     #word-list li.found-word {
       text-decoration: line-through;
-      color: #888;
+      color: #555;
+      font-weight: 300;
     }
+
     #buttons {
       margin-top: 25px;
       display: flex;
       gap: 12px;
       justify-content: center;
     }
+
     button {
       padding: 10px 20px;
       font-size: 15px;
@@ -102,9 +118,11 @@
       cursor: pointer;
       transition: background 0.3s;
     }
+
     button:hover {
       background: #005fa3;
     }
+
     #message {
       margin-top: 20px;
       font-size: 26px;
@@ -112,46 +130,55 @@
       color: #28a745;
       display: none;
       animation: pop 0.6s ease;
+      text-shadow: 0 0 5px black;
     }
+
     @keyframes pop {
       0% { transform: scale(0.7); opacity: 0; }
       50% { transform: scale(1.2); opacity: 1; }
       100% { transform: scale(1); }
     }
-  
+
     @media (max-width: 768px) {
       #container {
         flex-direction: column;
         align-items: center;
       }
+
       #board {
         grid-template-columns: repeat(7, minmax(36px, 1fr));
         grid-template-rows: repeat(7, minmax(36px, 1fr));
         gap: 4px;
       }
+
       .cell {
         width: 36px;
         height: 36px;
         font-size: 18px;
       }
+
       #word-list {
         margin-top: 20px;
       }
+
       #buttons {
         flex-direction: column;
         gap: 10px;
       }
+
       button {
         width: 100%;
         max-width: 220px;
       }
     }
-    </style>
+  </style>
 </head>
 <body>
   <h1>Sopa de Letras</h1>
-  <textarea id="words-source" style="display:none;"
->1. Trabajar juntos hacía un objetivo común
+
+  <!-- PISTAS -->
+  <textarea id="clues-source" style="display:none;">
+1. Trabajar juntos hacía un objetivo común
 2. Intercambio de información e ideas entre miembros del equipo
 3. Creencia en la capacidad y la integridad de los demás
 4. Generación de ideas nuevas y originales en grupo
@@ -161,29 +188,54 @@
 8. Unir esfuerzos y recursos para alcanzar metas comunes
 9. Interacción activa y efectiva entre los mienbros del equipo
 10. Proveer ayuda y respaldo a los compañeros en el trabajo
-</textarea>
+  </textarea>
+
+  <!-- PALABRAS -->
+  <textarea id="words-source" style="display:none;">
+COLABORACION
+COMUNICACION
+CONFIANZA
+CREATIVIDAD
+RESOLUCION
+OBSERVACION
+CUESTIONAMIENTO
+ASOCIACION
+DINAMICA
+APOYO
+  </textarea>
+
   <div id="container">
     <div>
       <div id="board-container">
         <div id="board"></div>
       </div>
+
       <div id="buttons">
         <button onclick="captureBoard()">📸 Capturar</button>
         <button onclick="sendToWhatsApp()">📲 Enviar por WhatsApp</button>
       </div>
+
       <div id="message">🎉 ¡Felicidades! 🎉</div>
     </div>
+
     <ul id="word-list"></ul>
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <script>
     let words = [];
+    let clues = [];
+    let foundWords = new Set();
 
     document.addEventListener('DOMContentLoaded', () => {
-      const raw = document.getElementById("words-source").value;
-      words = raw.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
+      words = document.getElementById("words-source").value
+        .split("\n").map(x => x.trim().toUpperCase()).filter(Boolean);
+
+      clues = document.getElementById("clues-source").value
+        .split("\n").map(x => x.trim()).filter(Boolean);
+
       initGame();
     });
 
@@ -191,17 +243,17 @@
       const gridSize = 7;
       const board = document.getElementById("board");
       const wordList = document.getElementById("word-list");
-      const foundWords = new Set();
+
       const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
       let path = [];
 
       function updateWordList() {
         wordList.innerHTML = "";
-        words.forEach(word => {
+        clues.forEach((clue, index) => {
           const li = document.createElement("li");
-          li.textContent = word;
-          li.id = `word-${word}`;
-          if (foundWords.has(word)) li.classList.add("found-word");
+          li.textContent = clue;
+          li.id = `clue-${index}`;
+          if (foundWords.has(words[index])) li.classList.add("found-word");
           wordList.appendChild(li);
         });
       }
@@ -209,6 +261,7 @@
       function placeWord(word) {
         const directions = [[1,0],[0,1],[1,1],[-1,1]];
         directions.sort(() => Math.random() - 0.5);
+
         for (let [dx, dy] of directions) {
           for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
@@ -216,16 +269,15 @@
               for (let i = 0; i < word.length; i++) {
                 let nx = x + dx * i;
                 let ny = y + dy * i;
-                if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize || (grid[ny][nx] !== "" && grid[ny][nx] !== word[i])) {
+                if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize || 
+                    (grid[ny][nx] !== "" && grid[ny][nx] !== word[i])) {
                   valid = false;
                   break;
                 }
               }
               if (valid) {
                 for (let i = 0; i < word.length; i++) {
-                  let nx = x + dx * i;
-                  let ny = y + dy * i;
-                  grid[ny][nx] = word[i];
+                  grid[y + dy*i][x + dx*i] = word[i];
                 }
                 return;
               }
@@ -267,7 +319,10 @@
         if (words.includes(word) && !foundWords.has(word)) {
           path.forEach(el => el.classList.add("found"));
           foundWords.add(word);
-          document.getElementById(`word-${word}`).classList.add("found-word");
+
+          const index = words.indexOf(word);
+          document.getElementById(`clue-${index}`).classList.add("found-word");
+
           if (foundWords.size === words.length) {
             document.getElementById("message").style.display = "block";
             document.getElementById("board-container").classList.add("win");
@@ -300,18 +355,13 @@
       };
 
       window.sendToWhatsApp = function () {
-        html2canvas(document.querySelector("#board")).then(canvas => {
-          canvas.toBlob(blob => {
-            const reader = new FileReader();
-            reader.onload = function() {
-              const url = `https://wa.me/56994406706?text=Te%20env%C3%ADo%20mi%20sopa%20de%20letras!`;
-              window.open(url, '_blank');
-            };
-            reader.readAsDataURL(blob);
-          });
-        });
+        const list = Array.from(foundWords).join(', ');
+        const mensaje = encodeURIComponent(`Palabras encontradas: ${list}`);
+        const url = `https://wa.me/56994406706?text=${mensaje}`;
+        window.open(url, '_blank');
       };
     }
   </script>
+
 </body>
 </html>
