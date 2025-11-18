@@ -6,40 +6,39 @@
 <title>Sopa de Letras</title>
 
 <style>
+  /* FONDO FIJO */
   body {
-  font-family: Arial, sans-serif;
-  background-image: url('fondo.jpg');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  margin: 0;
-  padding: 0;
-}
-
-
-  .wrapper {
-    padding-bottom: 200px; 
+    font-family: Arial, sans-serif;
+    background-image: url('fondo.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
   }
 
-  /* CONTENEDOR */
-  #soup-container {
-    width: 100%;
+  /* CONTENEDOR GENERAL */
+  .wrapper {
     max-width: 500px;
     margin: 20px auto;
+    padding-bottom: 50px;
+  }
+
+  /* GRILLA */
+  #soup-container {
+    width: 100%;
     padding: 15px;
     background: transparent;
-    backdrop-filter: blur(3px); /* opcional, queda elegante */ 
     border: 3px solid black;
     border-radius: 12px;
     box-sizing: border-box;
     overflow: hidden;
   }
 
-  /* GRILLA */
   .grid {
     display: grid;
-    grid-template-columns: repeat(14, 1fr); 
+    grid-template-columns: repeat(14, 1fr);
     gap: 3px;
     width: 100%;
   }
@@ -70,17 +69,16 @@
     100% { transform: scale(0.92); }
   }
 
-  /* PANEL FIJO PISTAS */
+  /* PANEL DE PISTAS STICKY */
   #clue-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    position: sticky;
+    top: 20px;
     background: white;
     border-top: 4px solid black;
     padding: 12px 15px;
     box-sizing: border-box;
-    z-index: 999;
+    margin-top: 20px;
+    z-index: 10;
   }
 
   #clue-panel h3 {
@@ -103,7 +101,6 @@
   }
 
 </style>
-
 </head>
 <body>
 
@@ -113,12 +110,12 @@
     <div id="grid" class="grid"></div>
   </div>
 
-</div>
+  <!-- PANEL DE PISTAS -->
+  <div id="clue-panel">
+    <h3>Pistas</h3>
+    <ul id="clue-list"></ul>
+  </div>
 
-<!-- PANEL DE PISTAS -->
-<div id="clue-panel">
-  <h3>Pistas</h3>
-  <ul id="clue-list"></ul>
 </div>
 
 <script>
@@ -140,7 +137,7 @@ let seleccion = [];
 let ultimaCelda = null;
 
 /* ===========================================
-   CREAR GRILLA
+   CREAR GRILLA VACÍA
 =========================================== */
 function crearGrillaVacia() {
   grid = Array(GRID_SIZE)
@@ -168,12 +165,8 @@ function ponerPalabra(p) {
   for (let i = 0; i < palabra.length; i++) {
     const xx = horizontal ? x + i : x;
     const yy = horizontal ? y : y + i;
-
     const existente = grid[yy][xx];
-
-    if (existente !== "" && existente !== palabra[i]) {
-      return false;
-    }
+    if (existente !== "" && existente !== palabra[i]) return false;
   }
 
   for (let i = 0; i < palabra.length; i++) {
@@ -192,9 +185,7 @@ function llenarRandom() {
   const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let y = 0; y < GRID_SIZE; y++) {
     for (let x = 0; x < GRID_SIZE; x++) {
-      if (grid[y][x] === "") {
-        grid[y][x] = letras[Math.floor(Math.random() * letras.length)];
-      }
+      if (grid[y][x] === "") grid[y][x] = letras[Math.floor(Math.random() * letras.length)];
     }
   }
 }
@@ -222,7 +213,7 @@ function renderGrid() {
 }
 
 /* ===========================================
-   ADYACENCIA (evita saltos)
+   ADYACENCIA
 =========================================== */
 function esAdyacente(c1, c2) {
   if (!c1 || !c2) return true;
@@ -317,3 +308,4 @@ iniciar();
 
 </body>
 </html>
+
