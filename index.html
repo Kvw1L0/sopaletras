@@ -46,14 +46,15 @@
 
   /* CONTENEDOR DE LA SOPA */
   #soup-container {
-    width: 100%;
-    padding: 15px;
-    padding-top: 20px;
-    background: transparent;
-    border: 3px solid black;
-    border-radius: 12px;
-    box-sizing: border-box;
-    overflow: hidden;
+  position: absolute; /* o fixed si quieres que no se mueva con scroll */
+  top: 200px; /* distancia desde el borde superior del viewport */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  padding: 15px;
+  background: transparent;
+  border: 3px solid black;
+  border-radius: 12px;
     /* margin-top será definido dinámicamente con JS */
   }
 
