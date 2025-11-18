@@ -21,25 +21,25 @@
   /* CONTENEDOR GENERAL */
   .wrapper {
     max-width: 500px;
-    margin: 20px auto;
-    padding-bottom: 20px;
-    padding-top: 20px;
-    display: flex; flex-direction: column;
+    margin: 0 auto 50px auto;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
   /* CONTENEDOR DE LA SOPA */
   #soup-container {
     width: 100%;
-   
-    padding-top: 20px; /* grilla 50px debajo del borde superior */
+    padding: 15px;
+    padding-top: 20px;          /* espacio interno */
+    margin-top: 250px;           /* espacio fijo debajo del título + logo */
     background: transparent;
     border: 3px solid black;
     border-radius: 12px;
     box-sizing: border-box;
     overflow: hidden;
-    margin-top: 250px;
-    position: relative;
-   
+    position: relative;          /* mantiene flujo normal */
   }
 
   /* GRILLA */
@@ -89,17 +89,15 @@
     100% { transform: scale(1); box-shadow: 0 0 5px #01afff; }
   }
 
-  /* PANEL DE PISTAS STICKY */
+  /* PANEL DE PISTAS */
   #clue-panel {
-    
-    
     background: white;
     border-top: 4px solid black;
     padding: 12px 15px;
     box-sizing: border-box;
-    margin-top: 20px;
+    margin-top: 20px;       /* separa de la grilla */
+    position: relative;      /* evita superposición */
     z-index: 1;
-    position: relative;
   }
 
   #clue-panel h3 {
@@ -117,7 +115,7 @@
 
   .clue-done {
     text-decoration: line-through;
-    color: green;
+    color: #01afff;
     font-weight: bold;
   }
 
@@ -156,7 +154,7 @@ const palabras = [
 let grid = [];
 let seleccion = [];
 let ultimaCelda = null;
-let completadas = []; // celdas de palabras completadas
+let completadas = [];
 
 /* ===========================================
    CREAR GRILLA VACÍA
@@ -348,3 +346,4 @@ iniciar();
 
 </body>
 </html>
+
