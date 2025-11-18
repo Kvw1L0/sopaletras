@@ -1,507 +1,320 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sopa de Letras — Jungle</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sopa de Letras</title>
+
 <style>
-  :root{
-    --cell-size: 34px;
-    --gap: 6px;
-  }
-  html,body{
-    height:100%;
-    margin:0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: url('fondo.jpg') center/cover no-repeat fixed;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
+  body {
+    margin: 0;
+    background: #f1f1f1;
+    font-family: Arial, sans-serif;
   }
 
-  header{
-    text-align:center;
-    padding:18px 10px 6px;
-    color:#fff;
-    text-shadow:0 2px 4px rgba(0,0,0,.6);
+  .wrapper {
+    padding-bottom: 200px; /* espacio para panel fijo */
   }
 
-  .wrap{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding: 8px 12px 80px;
-    box-sizing:border-box;
-  }
-
-  /* sticky wrapper: contiene grilla + pistas para evitar problemas en móvil */
-  .stickyWrapper{
-    position: sticky;
-    top: 14px;
-    z-index: 30;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    width:100%;
-    max-width:920px;
-    margin: 0 auto;
-    pointer-events: auto;
-  }
-
-  /* grid container (se adapta al tamaño calculado por JS) */
-  #grid{
-    display:grid;
-    gap: var(--gap);
-    padding: 14px;
-    background: rgba(255,255,255,0.92);
-    border-radius: 8px;
+  /* CONTENEDOR PRINCIPAL */
+  #soup-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 15px;
+    background: white;
     border: 3px solid black;
+    border-radius: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* GRILLA */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr); /* Ajusta según tu sopa */
+    gap: 3px;
+    width: 100%;
     box-sizing: border-box;
   }
 
-  .cell{
-    width: var(--cell-size);
-    height: var(--cell-size);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#fff;
-    border-radius: 6px;
-    user-select:none;
-    font-weight:700;
-    font-size: 14px;
+  .cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;         /* evita que toque los bordes */
+    font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
-    border: 1px solid #000; /* borde negro en cada celda */
-    transition: transform 100ms ease, background 160ms ease, box-shadow 120ms ease;
-    box-shadow: 0 0 0 rgba(0,0,0,0);
+    user-select: none;
+    transition: transform .1s ease, background .15s ease;
   }
 
-  .cell.selecting{
-    background: #cde7ff;
-    transform: scale(1.12);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  .cell.selected {
+    background: #ffd54f;
+    transform: scale(0.92);
+    animation: pop .15s ease-out;
   }
 
-  .cell.found{
-    background: #ffd54f !important;
-    transform: scale(1.02);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    cursor: default;
+  @keyframes pop {
+    0% { transform: scale(0.88); }
+    100% { transform: scale(0.92); }
   }
 
-  /* micro shake cuando se intenta seleccionar no válido */
-  @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    75% { transform: translateX(-4px); }
-    100% { transform: translateX(0); }
-  }
-  .invalid {
-    animation: shake 260ms ease;
-  }
-
-  /* pistas */
-  #clues{
-    width: 92%;
-    max-width: 680px;
-    background: rgba(255,255,255,0.95);
-    margin-top: 12px;
-    padding: 14px;
-    border-radius: 8px;
-    border: 3px solid black; /* marco negro */
+  /* PISTAS FIJAS ABAJO */
+  #clue-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top: 4px solid black;
+    padding: 12px 15px;
     box-sizing: border-box;
+    z-index: 999;
   }
 
-  #clues ul{
-    margin:0;
-    padding-left:16px;
+  #clue-panel h3 {
+    margin: 0 0 8px;
   }
-  #clues li{
-    margin:8px 0;
-    line-height:1.25;
-    font-size: 15px;
+
+  #clue-panel ul {
+    margin: 0;
+    padding-left: 18px;
   }
-  .clue-found::after{
-    content: " ✔️";
+
+  #clue-panel li {
+    margin-bottom: 6px;
+  }
+
+  /* PALABRAS COMPLETADAS */
+  .clue-done {
+    text-decoration: line-through;
     color: green;
-    font-weight:700;
-  }
-
-  /* boton whatsapp */
-  #whatsappBtn{
-    display:none;
-    margin-top:14px;
-    padding: 10px 18px;
-    background: #25D366;
-    border: none;
-    border-radius: 8px;
-    color:white;
-    font-weight:700;
-    cursor:pointer;
-  }
-
-  /* responsive tweaks */
-  @media (max-width:520px){
-    :root{ --cell-size: 30px; --gap:5px; }
-    header{ padding-top:8px; font-size:18px; }
-    #clues{ width:94%; padding:12px; }
-    .stickyWrapper{ top:8px; }
+    font-weight: bold;
   }
 
 </style>
+
 </head>
 <body>
 
+<div class="wrapper">
 
-  <main class="wrap">
+  <div id="soup-container">
+    <div id="grid" class="grid"></div>
+  </div>
 
-    <div class="stickyWrapper">
-      <div id="grid" aria-hidden="false"></div>
+</div>
 
-      <div id="clues" aria-live="polite" role="region">
-        <strong>PISTAS</strong>
-        <ul id="cluesList"></ul>
-      </div>
-    </div>
-
-    <button id="whatsappBtn">Enviar por WhatsApp</button>
-
-  </main>
+<!-- PANEL DE PISTAS -->
+<div id="clue-panel">
+  <h3>Pistas</h3>
+  <ul id="clue-list"></ul>
+</div>
 
 <script>
-/* ---------- DATOS (pistas y palabras) ---------- */
-const whatsappNumber = "56994406706";
+/* ===========================================
+   CONFIGURACIÓN
+=========================================== */
+const GRID_SIZE = 12;
 
-const clues = [
-  "1. Trabajar juntos hacía un objetivo común",
-  "2. Intercambio de información e ideas entre miembros del equipo",
-  "3. Creencia en la capacidad y la integridad de los demás",
-  "4. Generación de ideas nuevas y originales en grupo",
-  "5. Capacidad para encontrar soluciones a problemas en equipo",
-  "6. Habilidad para notar detalles y dinámicas grupales",
-  "7. Plantear preguntas para profundizar en la comprensión",
-  "8. Unir esfuerzos y recursos para alcanzar metas comunes",
-  "9. Interacción activa y efectiva entre los miembros del equipo",
-  "10. Proveer ayuda y respaldo a los compañeros en el trabajo"
+const palabras = [
+  { palabra: "CASA", pista: "Lugar donde vive la gente." },
+  { palabra: "NIEVE", pista: "Cae del cielo cuando hace frío." },
+  { palabra: "LUNA", pista: "Se ve en la noche y no es estrella." },
 ];
 
-const words = [
-  "COLABORAR",
-  "COMUNICAR",
-  "CONFIAR",
-  "CREAR",
-  "RESOLVER",
-  "OBSERVAR",
-  "CUESTIONAR",
-  "ASOCIAR",
-  "DINAMIZAR",
-  "APOYAR"
-];
+let grid = [];
+let seleccion = [];
+let ultimaCelda = null;
 
-/* ---------- RENDERIZAR PISTAS ---------- */
-const cluesList = document.getElementById('cluesList');
-clues.forEach((txt, i) => {
-  const li = document.createElement('li');
-  li.id = `clue-${i}`;
-  li.textContent = txt;
-  cluesList.appendChild(li);
-});
-
-/* ---------- GENERAR GRILLA Y COLOCAR PALABRAS (horizontal y vertical, permiten solaparse letras iguales) ---------- */
-const gridDiv = document.getElementById('grid');
-
-function createEmptyGrid(n){
-  return Array.from({length:n}, ()=> Array.from({length:n}, ()=> ''));
+/* ===========================================
+   CREAR GRILLA VACÍA
+=========================================== */
+function crearGrillaVacia() {
+  grid = Array(GRID_SIZE)
+    .fill(null)
+    .map(() => Array(GRID_SIZE).fill(""));
 }
 
-function placeWord(word, grid){
-  const N = grid.length;
-  const directions = [[1,0],[0,1]]; // horizontal o vertical
-  let attempts = 0;
-  while(attempts++ < 1000){
-    const dir = directions[Math.floor(Math.random()*directions.length)];
-    const dx = dir[0], dy = dir[1];
-    const maxX = dx===1 ? N - word.length : N - 1;
-    const maxY = dy===1 ? N - word.length : N - 1;
-    const x = Math.floor(Math.random() * (maxX + 1));
-    const y = Math.floor(Math.random() * (maxY + 1));
-    // comprobar que encaje (vacío o misma letra)
-    let ok = true;
-    for(let i=0;i<word.length;i++){
-      const nx = x + dx*i;
-      const ny = y + dy*i;
-      const cell = grid[ny][nx];
-      if(cell !== '' && cell !== word[i]) { ok = false; break; }
-    }
-    if(!ok) continue;
-    // colocar
-    for(let i=0;i<word.length;i++){
-      const nx = x + dx*i;
-      const ny = y + dy*i;
-      grid[ny][nx] = word[i];
-    }
-    return true;
-  }
-  return false;
-}
+/* ===========================================
+   INTENTAR INSERTAR PALABRA (con cruce válido)
+=========================================== */
+function ponerPalabra(p) {
+  const palabra = p.palabra;
+  const horizontal = Math.random() > 0.5;
 
-function generateGridForWords(words){
-  const maxLen = Math.max(...words.map(w=>w.length));
-  let size = Math.max(8, maxLen + 4);
-  const maxSize = 30;
-  while(size <= maxSize){
-    const g = createEmptyGrid(size);
-    let ok = true;
-    for(const w of words){
-      if(!placeWord(w, g)){ ok = false; break; }
-    }
-    if(ok) return g;
-    size++;
-  }
-  // fallback: grid empty
-  return createEmptyGrid(size);
-}
+  let x = 0, y = 0;
 
-/* Generar y rellenar */
-let grid = generateGridForWords(words);
-
-for(let r=0;r<grid.length;r++){
-  for(let c=0;c<grid.length;c++){
-    if(!grid[r][c]){
-      grid[r][c] = String.fromCharCode(65 + Math.floor(Math.random()*26));
-    }
-  }
-}
-
-/* ---------- RENDER HTML GRID ---------- */
-const N = grid.length;
-gridDiv.style.gridTemplateColumns = `repeat(${N}, var(--cell-size))`;
-gridDiv.innerHTML = '';
-
-for(let r=0;r<N;r++){
-  for(let c=0;c<N;c++){
-    const d = document.createElement('div');
-    d.className = 'cell';
-    d.textContent = grid[r][c];
-    d.dataset.r = r;
-    d.dataset.c = c;
-    gridDiv.appendChild(d);
-  }
-}
-
-/* ---------- SELECCIÓN y VALIDACIÓN ---------- */
-/*
- Regla de selección:
- - Primera letra: cualquiera (si no está 'found').
- - Segunda letra: debe ser adyacente (Manhattan distance 1) y define dirección (horiz/vert).
- - Letras siguientes: deben estar adyacentes y seguir la misma dirección (o sea línea recta).
- - Solo se permite seleccionar/desmarcar la ÚLTIMA letra (click en última la quita).
- - Si la selección completa forma una palabra (o la inversa), se marca como 'found' y queda fija.
- - Letras que ya sean parte de 'found' no pueden volver a seleccionarse.
-*/
-
-const cells = Array.from(document.querySelectorAll('.cell'));
-const cellAt = (r,c) => cells.find(el => +el.dataset.r===r && +el.dataset.c===c);
-
-let selection = []; // array de elementos DOM en orden
-let direction = null; // [dr,dc] o null
-
-function coordsOf(cell){
-  return { r: +cell.dataset.r, c: +cell.dataset.c };
-}
-
-function areAdjacent(a,b){
-  const dr = b.r - a.r;
-  const dc = b.c - a.c;
-  const man = Math.abs(dr) + Math.abs(dc);
-  return man === 1;
-}
-
-function normalizeDir(dr, dc){
-  if(dr !== 0) dr = dr/Math.abs(dr);
-  if(dc !== 0) dc = dc/Math.abs(dc);
-  return [dr, dc];
-}
-
-function selectionText(){
-  return selection.map(x => x.textContent).join('');
-}
-
-function markInvalid(el){
-  el.classList.add('invalid');
-  setTimeout(()=> el.classList.remove('invalid'), 300);
-}
-
-/* Desmarcar última selección visualmente */
-function deselectLast(){
-  const last = selection.pop();
-  if(!last) return;
-  last.classList.remove('selecting');
-  // reset direction if quedó 0 o 1 letra
-  if(selection.length <= 1) direction = null;
-}
-
-/* Marcar selección visualmente */
-function selectCell(cell){
-  selection.push(cell);
-  cell.classList.add('selecting');
-}
-
-/* Marcar como encontrada (found) */
-function markFound(word){
-  selection.forEach(c => {
-    c.classList.remove('selecting');
-    c.classList.add('found');
-  });
-  // marcar la pista
-  const idx = words.indexOf(word);
-  if(idx >= 0){
-    const li = document.getElementById(`clue-${idx}`);
-    if(li) li.classList.add('clue-found');
+  if (horizontal) {
+    x = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
+    y = Math.floor(Math.random() * GRID_SIZE);
   } else {
-    // si se dio la inversa, buscar por comparación
-    for(let i=0;i<words.length;i++){
-      if(words[i] === word.split('').reverse().join('')){
-        const li = document.getElementById(`clue-${i}`);
-        if(li) li.classList.add('clue-found');
-        break;
+    x = Math.floor(Math.random() * GRID_SIZE);
+    y = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
+  }
+
+  // Validar espacio
+  for (let i = 0; i < palabra.length; i++) {
+    const xx = horizontal ? x + i : x;
+    const yy = horizontal ? y : y + i;
+
+    const existente = grid[yy][xx];
+    if (existente !== "" && existente !== palabra[i]) {
+      return false; // conflicto real
+    }
+  }
+
+  // Insertar
+  for (let i = 0; i < palabra.length; i++) {
+    const xx = horizontal ? x + i : x;
+    const yy = horizontal ? y : y + i;
+    grid[yy][xx] = palabra[i];
+  }
+
+  return true;
+}
+
+/* ===========================================
+   RELLENAR RESTO CON LETRAS RANDOM
+=========================================== */
+function llenarRandom() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      if (grid[y][x] === "") {
+        grid[y][x] = letras[Math.floor(Math.random() * letras.length)];
       }
     }
   }
-  // limpiar selección y direction
-  selection = [];
-  direction = null;
 }
 
-/* Check si la palabra encontrada está en la lista (forward o reverse) */
-function checkWordMatch(){
-  const txt = selectionText();
-  for(const w of words){
-    if(txt === w || txt === w.split('').reverse().join('')){
-      return w; // devuelve la palabra (coincide)
+/* ===========================================
+   RENDER GRILLA
+=========================================== */
+function renderGrid() {
+  const gridDiv = document.getElementById("grid");
+  gridDiv.innerHTML = "";
+
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.textContent = grid[y][x];
+
+      cell.addEventListener("click", () => toggleSeleccion(cell));
+
+      gridDiv.appendChild(cell);
     }
   }
-  return null;
 }
 
-/* click handler */
-gridDiv.addEventListener('click', (ev)=>{
-  const el = ev.target;
-  if(!el.classList.contains('cell')) return;
+/* ===========================================
+   ADJACENCIA (evita saltos)
+=========================================== */
+function esAdyacente(celda1, celda2) {
+  if (!celda1 || !celda2) return true; // primer click
+  const dx = Math.abs(celda1.x - celda2.x);
+  const dy = Math.abs(celda1.y - celda2.y);
+  return dx <= 1 && dy <= 1;
+}
 
-  // si ya es found: no interactuar
-  if(el.classList.contains('found')) return;
+/* ===========================================
+   SELECCIÓN / DESELECCIÓN
+=========================================== */
+function toggleSeleccion(div) {
+  const x = parseInt(div.dataset.x);
+  const y = parseInt(div.dataset.y);
+  const celda = { div, x, y, letra: div.textContent };
 
-  // si está seleccionada y es la última: deseleccionar
-  const idx = selection.indexOf(el);
-  if(idx !== -1){
-    // solo permitimos quitar la última seleccionada
-    if(idx === selection.length - 1){
-      deselectLast();
-    } else {
-      // no permitimos deseleccionar intermedia -> feedback
-      markInvalid(el);
-    }
+  // ¿Ya estaba seleccionada?
+  const idx = seleccion.findIndex(c => c.div === div);
+  if (idx >= 0) {
+    // Deseleccionar
+    div.classList.remove("selected");
+    seleccion.splice(idx, 1);
+    ultimaCelda = seleccion[seleccion.length - 1] || null;
     return;
   }
 
-  // si no hay selección todavía -> aceptar
-  if(selection.length === 0){
-    selectCell(el);
-    return;
-  }
+  // Evitar saltos (no adyacente)
+  if (!esAdyacente(ultimaCelda, celda)) return;
 
-  // hay selección: debemos comprobar adyacencia y dirección
-  const last = selection[selection.length -1];
-  const a = coordsOf(last);
-  const b = coordsOf(el);
+  // Seleccionar
+  div.classList.add("selected");
+  seleccion.push(celda);
+  ultimaCelda = celda;
 
-  // deben ser adyacentes
-  if(!areAdjacent(a,b)){
-    markInvalid(el);
-    return;
-  }
+  verificarPalabra();
+}
 
-  // si aún no hay dirección (selection length ===1), definirla
-  if(!direction){
-    const dr = b.r - a.r;
-    const dc = b.c - a.c;
-    // permitir solo horizontal o vertical (ya garantizado por areAdjacent)
-    direction = normalizeDir(dr, dc);
-    selectCell(el);
-    // después de marcar, comprobar palabra
-  } else {
-    // tiene dirección: comprobar que este nuevo paso siga la misma dirección
-    const dr = b.r - a.r;
-    const dc = b.c - a.c;
-    const nd = normalizeDir(dr, dc);
-    if(nd[0] === direction[0] && nd[1] === direction[1]){
-      selectCell(el);
-    } else {
-      markInvalid(el);
+/* ===========================================
+   VERIFICAR PALABRAS
+=========================================== */
+function verificarPalabra() {
+  const cadena = seleccion.map(c => c.letra).join("");
+
+  for (const p of palabras) {
+    if (cadena === p.palabra) {
+      // Completa palabra
+      marcarCompletada(p.palabra);
+
+      // limpiar selección
+      seleccion.forEach(c => c.div.classList.remove("selected"));
+      seleccion = [];
+      ultimaCelda = null;
       return;
     }
   }
+}
 
-  // tras cada selección, comprobamos si la secuencia coincide con una palabra
-  const match = checkWordMatch();
-  if(match){
-    markFound(match);
-    checkAllFound();
-  }
-});
+/* ===========================================
+   MARCAR PALABRA EN LISTA DE PISTAS
+=========================================== */
+function marcarCompletada(palabra) {
+  const li = document.querySelector(`li[data-pal="${palabra}"]`);
+  if (li) li.classList.add("clue-done");
+}
 
-/* Permitir reset de selección completa con tecla Escape (opcional útil) */
-window.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape'){
-    while(selection.length) deselectLast();
-  }
-});
-
-/* ---------- UTIL / FIN DEL JUEGO ---------- */
-const foundWords = new Set();
-function checkAllFound(){
-  // marcar en foundWords las pistas que ya tienen clase clue-found
-  words.forEach((w,i)=>{
-    const li = document.getElementById(`clue-${i}`);
-    if(li && li.classList.contains('clue-found')){
-      foundWords.add(w);
-    }
-  });
-
-  if(foundWords.size === words.length){
-    document.getElementById('whatsappBtn').style.display = 'inline-block';
+/* ===========================================
+   RENDER PISTAS
+=========================================== */
+function renderPistas() {
+  const ul = document.getElementById("clue-list");
+  ul.innerHTML = "";
+  for (const p of palabras) {
+    const li = document.createElement("li");
+    li.textContent = p.pista;
+    li.dataset.pal = p.palabra;
+    ul.appendChild(li);
   }
 }
 
-/* ---------- WhatsApp action ---------- */
-document.getElementById('whatsappBtn').addEventListener('click', ()=>{
-  const list = Array.from(foundWords).join(', ');
-  const texto = encodeURIComponent(`Palabras encontradas: ${list}`);
-  const url = `https://wa.me/${whatsappNumber}?text=${texto}`;
-  window.open(url, '_blank');
-});
+/* ===========================================
+   INIT
+=========================================== */
+function iniciar() {
+  crearGrillaVacia();
+  palabras.forEach(p => {
+    let ok = false;
+    while (!ok) ok = ponerPalabra(p);
+  });
 
-/* Accessibility: focus style for keyboard navigation */
-gridDiv.addEventListener('keydown', (e)=>{
-  // no implementado navegación completa por teclado en esta versión,
-  // se puede añadir si lo quieres.
-});
+  llenarRandom();
+  renderGrid();
+  renderPistas();
+}
 
-/* small: ensure grid is visible on load (helpful en mobile) */
-window.addEventListener('load', ()=>{
-  // scroll to top of stickyWrapper so grid is visible on small screens
-  const wrapper = document.querySelector('.stickyWrapper');
-  if(wrapper){
-    const top = wrapper.getBoundingClientRect().top + window.scrollY - 8;
-    if(window.scrollY > top + 40) window.scrollTo({ top, behavior: 'smooth' });
-  }
-});
-
-/* prevent text selection while tapping fast en mobile */
-gridDiv.addEventListener('touchstart', (e)=> e.preventDefault(), {passive:false});
+iniciar();
 
 </script>
+
 </body>
 </html>
 
