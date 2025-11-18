@@ -46,16 +46,12 @@
 
   /* CONTENEDOR DE LA SOPA */
   #soup-container {
-  position: absolute; /* o fixed si quieres que no se mueva con scroll */
-  top: 200px; /* distancia desde el borde superior del viewport */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  padding: 15px;
-  background: transparent;
-  border: 3px solid black;
-  border-radius: 12px;
-    /* margin-top será definido dinámicamente con JS */
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 3px solid black;
+    border-radius: 12px;
+    box-sizing: border-box;
   }
 
   /* GRILLA */
@@ -111,7 +107,6 @@
     border-top: 4px solid black;
     padding: 12px 15px;
     box-sizing: border-box;
-    margin-top: 20px;
   }
 
   #clue-panel h3 {
@@ -137,8 +132,8 @@
 <body>
 
 <div id="header">
-  
-  
+  <h1>Sopa de Letras</h1>
+  <img src="logo.png" alt="Logo Eurifirm">
 </div>
 
 <div class="wrapper">
@@ -301,14 +296,6 @@ function renderPistas() {
   }
 }
 
-// Ajusta dinámicamente el margin-top del contenedor de la sopa
-function ajustarMarginSopa() {
-  const header = document.getElementById('header');
-  const soup = document.getElementById('soup-container');
-  const alturaHeader = header.offsetHeight;
-  soup.style.marginTop = (alturaHeader + 20) + 'px'; // +20px de separación
-}
-
 function iniciar() {
   crearGrillaVacia();
   palabras.forEach(p => {
@@ -318,14 +305,11 @@ function iniciar() {
   llenarRandom();
   renderGrid();
   renderPistas();
-  ajustarMarginSopa();
 }
 
-// Eventos para cargar y redimensionar
 window.addEventListener('load', iniciar);
-window.addEventListener('resize', ajustarMarginSopa);
+window.addEventListener('resize', iniciar);
 </script>
 
 </body>
 </html>
-
