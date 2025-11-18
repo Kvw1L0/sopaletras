@@ -51,18 +51,19 @@
   .found {
     background: yellow !important;
   }
-  #clues {
-    position: sticky;
-    top: 500px; /* ajusta según dónde esté tu título */
-    z-index: 10;
-    width: 90%;    
-    margin-top: 150px; 
-    background: white;
-    padding: 15px;
-    border-radius: 6px;
-    max-height: 300px;     /* evita que crezca infinito */
-    overflow-y: auto;      /* scroll interno si es muy largo */
-   
+ #clues {
+  position: sticky;
+  top: 180px;  /* grilla (80px) + su altura aproximada */
+  z-index: 10;
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 2px solid black; /* MARCO negro */
+  max-width: 600px;
+  width: 90%;
+  margin-top: 10px;
+}
+
  
   }
   #clues li {
