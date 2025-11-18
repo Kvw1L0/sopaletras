@@ -22,23 +22,24 @@
   .wrapper {
     max-width: 500px;
     margin: 20px auto;
-    padding-top: 50px;
     padding-bottom: 20px;
+    padding-top: 20px;
   }
 
-  /* GRILLA */
+  /* CONTENEDOR DE LA SOPA */
   #soup-container {
-    
-    margin-top: 250px;
     width: 100%;
     padding: 15px;
+    padding-top: 50px; /* grilla 50px debajo del borde superior */
     background: transparent;
     border: 3px solid black;
     border-radius: 12px;
     box-sizing: border-box;
     overflow: hidden;
+    margin-top: 20px;
   }
 
+  /* GRILLA */
   .grid {
     display: grid;
     grid-template-columns: repeat(14, 1fr);
@@ -67,9 +68,22 @@
     animation: pop .15s ease-out;
   }
 
+  .cell.completed {
+    background: #01afff; /* azul brillante */
+    color: white;
+    font-weight: bold;
+    animation: popGlow 0.4s ease-out;
+  }
+
   @keyframes pop {
     0% { transform: scale(0.88); }
     100% { transform: scale(0.92); }
+  }
+
+  @keyframes popGlow {
+    0% { transform: scale(0.9); box-shadow: 0 0 5px #01afff; }
+    50% { transform: scale(1.1); box-shadow: 0 0 20px #01afff; }
+    100% { transform: scale(1); box-shadow: 0 0 5px #01afff; }
   }
 
   /* PANEL DE PISTAS STICKY */
@@ -128,16 +142,17 @@
 const GRID_SIZE = 14;
 
 const palabras = [
-  { palabra: "RESOLVER", pista: " Capacidad para encontrar soluciones a problemas en equipo" },
-  { palabra: "COMUNICAR", pista: "Intercambio de información e ideas entre miembros del equipo " },
+  { palabra: "RESOLVER", pista: "Capacidad para encontrar soluciones a problemas en equipo" },
+  { palabra: "COMUNICAR", pista: "Intercambio de información e ideas entre miembros del equipo" },
   { palabra: "CREATIVIDAD", pista: "Generación de ideas nuevas y originales en grupo" },
   { palabra: "APOYO", pista: "Proveer soporte y respaldo a los compañeros en el trabajo" },
-  { palabra: "OBSERVAR", pista: "Habilidad para notar detalles y dinámicas grupales " }
+  { palabra: "OBSERVAR", pista: "Habilidad para notar detalles y dinámicas grupales" }
 ];
 
 let grid = [];
 let seleccion = [];
 let ultimaCelda = null;
+let completadas = []; // celdas de palabras completadas
 
 /* ===========================================
    CREAR GRILLA VACÍA
@@ -208,6 +223,10 @@ function renderGrid() {
       cell.dataset.y = y;
       cell.textContent = grid[y][x];
 
+      if (completadas.find(c => c.x === x && c.y === y)) {
+        cell.classList.add("completed");
+      }
+
       cell.addEventListener("click", () => toggleSeleccion(cell));
 
       gridDiv.appendChild(cell);
@@ -232,6 +251,8 @@ function toggleSeleccion(div) {
   const x = parseInt(div.dataset.x);
   const y = parseInt(div.dataset.y);
   const celda = { div, x, y, letra: div.textContent };
+
+  if (completadas.find(c => c.x === x && c.y === y)) return;
 
   const idx = seleccion.findIndex(c => c.div === div);
   if (idx >= 0) {
@@ -259,6 +280,18 @@ function verificarPalabra() {
   for (const p of palabras) {
     if (cadena === p.palabra) {
       marcarCompletada(p.palabra);
+
+      seleccion.forEach(c => {
+        if (!completadas.find(cc => cc.x === c.x && cc.y === c.y)) {
+          completadas.push({x: c.x, y: c.y});
+          c.div.classList.add("completed");
+
+          // Animación popGlow
+          c.div.style.animation = 'none';
+          c.div.offsetHeight; // force reflow
+          c.div.style.animation = 'popGlow 0.4s ease-out';
+        }
+      });
 
       seleccion.forEach(c => c.div.classList.remove("selected"));
       seleccion = [];
@@ -311,4 +344,3 @@ iniciar();
 
 </body>
 </html>
-
