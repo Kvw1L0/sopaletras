@@ -30,6 +30,7 @@
     font-weight: bold;
     border-radius: 4px;
     cursor: pointer;
+    user-select: none;
   }
   .found {
     background: yellow;
@@ -42,6 +43,7 @@
     border: none;
     border-radius: 6px;
     font-size: 18px;
+    cursor: pointer;
   }
 </style>
 </head>
@@ -50,6 +52,9 @@
 <div id="grid"></div>
 <button id="whatsappBtn">Enviar por WhatsApp</button>
 <script>
+// >>> NÚMERO DE WHATSAPP CONFIGURADO <<<
+const whatsappNumber = "56994406706"; // sin +, solo código país + número
+
 const words = [
   "COLABORACION",
   "COMUNICACION",
@@ -65,103 +70,167 @@ const words = [
 
 // Determinar tamaño mínimo de grilla según palabra más larga
 const maxLen = Math.max(...words.map(w => w.length));
-const size = maxLen + 3;
+const size = Math.max(7, maxLen + 3); // mínimo 7x7
 
+const gridDiv = document.getElementById("grid");
 document.getElementById("grid").style.gridTemplateColumns = `repeat(${size}, 35px)`;
 
-theGrid = Array(size).fill(null).map(()=>Array(size).fill(""));
+autoTheGrid = Array.from({length: size}, () => Array.from({length: size}, () => ""));
 
 function placeWord(word) {
-  let placed = false;
-  while (!placed) {
-    const row = Math.floor(Math.random() * size);
-    const col = Math.floor(Math.random() * (size - word.length));
-    let fits = true;
+  let attempts = 0;
+  const directions = [ [1,0], [0,1], [1,1], [-1,1], [-1,0], [0,-1], [-1,-1], [1,-1] ];
 
+  while (attempts < 500) {
+    attempts++;
+    const dir = directions[Math.floor(Math.random()*directions.length)];
+    const dx = dir[0], dy = dir[1];
+
+    // pick a start so word fits
+    const maxX = dx === 1 ? size - word.length : dx === -1 ? word.length - 1 : size - 1;
+    const maxY = dy === 1 ? size - word.length : dy === -1 ? word.length - 1 : size - 1;
+    const minX = dx === 1 ? 0 : dx === -1 ? word.length - 1 : 0;
+    const minY = dy === 1 ? 0 : dy === -1 ? word.length - 1 : 0;
+
+    const x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+    const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+    let fits = true;
     for (let i = 0; i < word.length; i++) {
-      if (theGrid[row][col+i] !== "" && theGrid[row][col+i] !== word[i]) {
-        fits = false;
-        break;
-      }
+      const nx = x + dx * i;
+      const ny = y + dy * i;
+      if (nx < 0 || ny < 0 || nx >= size || ny >= size) { fits = false; break; }
+      const cell = autoTheGrid[ny][nx];
+      if (cell !== "" && cell !== word[i]) { fits = false; break; }
     }
     if (!fits) continue;
 
-    for (let i = 0; i < word.length; i++) theGrid[row][col+i] = word[i];
-    placed = true;
+    for (let i = 0; i < word.length; i++) {
+      const nx = x + dx * i;
+      const ny = y + dy * i;
+      autoTheGrid[ny][nx] = word[i];
+    }
+    return true;
+  }
+  return false;
+}
+
+// place all words, if any fail, we increase grid size (simple retry loop)
+let placedAll = false;
+let retryGridSize = size;
+let finalGrid;
+while (!placedAll && retryGridSize <= 30) {
+  // recreate grid
+  const tempGrid = Array.from({length: retryGridSize}, () => Array.from({length: retryGridSize}, () => ""));
+  autoTheGrid.length = 0;
+  for(let i=0;i<retryGridSize;i++) autoTheGrid.push(Array.from({length: retryGridSize}, ()=>""));
+
+  let ok = true;
+  for (let w of words) {
+    const success = placeWord(w);
+    if (!success) { ok = false; break; }
+  }
+  if (ok) { placedAll = true; finalGrid = autoTheGrid; break; }
+  retryGridSize++;
+}
+
+// if somehow failed, fallback to initial grid with words placed horizontally
+if (!placedAll) {
+  finalGrid = Array.from({length: size}, () => Array.from({length: size}, () => ""));
+  let col = 0;
+  for (let w of words) {
+    if (col + w.length > size) break;
+    for (let i=0;i<w.length;i++) finalGrid[0][col+i] = w[i];
+    col += w.length + 1;
   }
 }
 
-words.forEach(placeWord);
-
-// Rellenar vacíos con letras aleatorias
-for (let r=0; r<size; r++) {
-  for (let c=0; c<size; c++) {
-    if (theGrid[r][c] === "") theGrid[r][c] = String.fromCharCode(65 + Math.floor(Math.random()*26));
+// fill remaining with random letters
+for (let r=0; r<finalGrid.length; r++) {
+  for (let c=0; c<finalGrid[0].length; c++) {
+    if (!finalGrid[r][c] || finalGrid[r][c] === "") finalGrid[r][c] = String.fromCharCode(65 + Math.floor(Math.random()*26));
   }
 }
 
-// Render
-const gridDiv = document.getElementById("grid");
-const foundWords = new Set();
-
-for (let r=0; r<size; r++){
-  for (let c=0; c<size; c++){
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    cell.textContent = theGrid[r][c];
-    cell.dataset.row = r;
-    cell.dataset.col = c;
+// render grid
+gridDiv.innerHTML = "";
+const rows = finalGrid.length;
+const cols = finalGrid[0].length;
+gridDiv.style.gridTemplateColumns = `repeat(${cols}, 35px)`;
+for (let r=0; r<rows; r++) {
+  for (let c=0; c<cols; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.textContent = finalGrid[r][c];
+    cell.dataset.r = r;
+    cell.dataset.c = c;
     gridDiv.appendChild(cell);
   }
 }
 
-let selecting = false;
+const foundWords = new Set();
 let selection = [];
 
-gridDiv.addEventListener("mousedown", e => {
-  selecting = true;
-  selection = [];
-  mark(e.target);
-});
+// click letter-by-letter selection
+gridDiv.addEventListener('click', (e) => {
+  const cell = e.target;
+  if (!cell.classList.contains('cell')) return;
 
-gridDiv.addEventListener("mouseover", e => {
-  if (selecting) mark(e.target);
-});
+  // toggle selection if same cell clicked twice
+  if (selection.includes(cell)) {
+    // if clicked last cell, remove it (allow undo)
+    if (selection[selection.length-1] === cell) {
+      selection.pop();
+      cell.style.background = cell.classList.contains('found') ? 'yellow' : 'white';
+    } else {
+      // ignore clicks on already-selected non-last cells
+      return;
+    }
+  } else {
+    // add cell
+    cell.style.background = '#add8e6';
+    selection.push(cell);
+  }
 
-window.addEventListener("mouseup", () => {
-  selecting = false;
   checkWord();
-  clearHighlights();
 });
 
-function mark(cell){
-  if (!cell.classList.contains("cell")) return;
-  cell.style.background = "#add8e6";
-  selection.push(cell);
+function clearSelectionVisuals() {
+  selection.forEach(c=>{ if (!c.classList.contains('found')) c.style.background = 'white'; });
+  selection = [];
 }
 
-function clearHighlights(){
-  document.querySelectorAll('.cell').forEach(c=>{
-    if (!c.classList.contains("found")) c.style.background = "white";
-  });
-}
+function checkWord() {
+  const str = selection.map(c=>c.textContent).join('');
+  const reverse = selection.map(c=>c.textContent).reverse().join('');
 
-function checkWord(){
-  const str = selection.map(c=>c.textContent).join("");
-  const reverse = selection.map(c=>c.textContent).reverse().join("");
-
-  for (let w of words){
-    if (str === w || reverse === w){
+  for (let w of words) {
+    if ((str === w || reverse === w) && !foundWords.has(w)) {
       foundWords.add(w);
-      selection.forEach(c=>c.classList.add("found"));
+      selection.forEach(c=> c.classList.add('found'));
+      // leave found letters highlighted
+      selection.forEach(c=> c.style.background = 'yellow');
+      // clear current selection array so new selection starts fresh
+      selection = [];
+      break;
     }
   }
 
-  if (foundWords.size === words.length){
-    document.getElementById("whatsappBtn").style.display = "block";
+  if (foundWords.size === words.length) {
+    const btn = document.getElementById('whatsappBtn');
+    btn.style.display = 'inline-block';
   }
 }
+
+function sendWhatsApp() {
+  const list = Array.from(foundWords).join(', ');
+  const mensaje = encodeURIComponent(`Palabras encontradas: ${list}`);
+  const url = `https://wa.me/${whatsappNumber}?text=${mensaje}`;
+  window.open(url, '_blank');
+}
+
+document.getElementById('whatsappBtn').addEventListener('click', sendWhatsApp);
+
 </script>
 </body>
 </html>
-
