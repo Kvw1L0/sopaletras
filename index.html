@@ -75,16 +75,16 @@
 const whatsappNumber = "56994406706";
 
 const clues = [
-  "1. Trabajar juntos hacía un objetivo común",
-  "2. Intercambio de información e ideas entre miembros del equipo",
-  "3. Creencia en la capacidad y la integridad de los demás",
-  "4. Generación de ideas nuevas y originales en grupo",
-  "5. Capacidad para encontrar soluciones a problemas en equipo",
-  "6. Habilidad para notar detalles y dinámicas grupales",
-  "7. Plantear preguntas para profundizar en la comprensión",
-  "8. Unir esfuerzos y recursos para alcanzar metas comunes",
-  "9. Interacción activa y efectiva entre los miembros del equipo",
-  "10. Proveer ayuda y respaldo a los compañeros en el trabajo"
+  "Colaborar",
+  "Comunicar",
+  "Confiar",
+  "Crear",
+  "Resolver",
+  "Observar",
+  "Cuestionar",
+  "Asociar",
+  "Dinamizar",
+  "Apoyar"
 ];
 
 const words = [
@@ -165,7 +165,8 @@ function placeWord(word, grid) {
 
 // Intentar aumentar grilla si no caben
 function generateGrid() {
-  for (let attempt = 0; attempt < 10; attempt++) {
+  let maxSize = 30;
+  while (size <= maxSize) {
     grid = createGrid(size);
     let ok = true;
     for (let w of words) {
@@ -174,6 +175,8 @@ function generateGrid() {
     if (ok) return;
     size++;
   }
+  // fallback: fill anyway
+  grid = createGrid(size);
 }
 
 generateGrid();
@@ -188,7 +191,9 @@ for (let r = 0; r < grid.length; r++) {
 }
 
 // Render
-gridDiv.style.gridTemplateColumns = `repeat(${grid.length}, 30px)`;.innerHTML = "";
+gridDiv.style.gridTemplateColumns = `repeat(${grid.length}, 30px)`;
+
+gridDiv.innerHTML = "";
 for (let r = 0; r < grid.length; r++) {
   for (let c = 0; c < grid.length; c++) {
     const cell = document.createElement("div");
