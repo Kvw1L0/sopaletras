@@ -311,6 +311,26 @@ function iniciar() {
 
 window.addEventListener('load', iniciar);
 window.addEventListener('resize', iniciar);
+
+// Bloquear recarga accidental
+window.addEventListener("beforeunload", function(e) {
+  e.preventDefault();
+  e.returnValue = ""; // la mayoría de los navegadores mostrarán un mensaje por defecto
+});
+
+// Bloquear teclas F5 y Ctrl+R
+window.addEventListener("keydown", function(e) {
+  if ((e.key === "F5") || 
+      (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
+    e.preventDefault();
+  }
+});
+
+// Bloquear clic derecho para evitar recargar desde el menú contextual
+window.addEventListener("contextmenu", function(e) {
+  e.preventDefault();
+});
+
 </script>
 
 </body>
