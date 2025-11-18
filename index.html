@@ -19,6 +19,7 @@
     gap: 5px;
     margin-bottom: 20px;
     user-select: none;
+    padding: 20px; /* agregado para que no choquen con el borde */
   }
   .cell {
     width: 30px;
@@ -66,7 +67,7 @@
 </head>
 <body>
 <h2>Sopa de Letras</h2>
-<div id="gridContainer" style="padding:20px; background:#ffffffbb; border-radius:12px; margin-bottom:20px;"><div id="grid"></div></div>
+<div id="grid"></div>
 <ul id="clues"></ul>
 <button id="whatsappBtn">Enviar por WhatsApp</button>
 <script>
@@ -253,4 +254,3 @@ document.getElementById("whatsappBtn").addEventListener("click", sendWhatsApp);
 </script>
 </body>
 </html>
-
