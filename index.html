@@ -1,367 +1,167 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sopa de Letras</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: url('fondo.jpg') no-repeat center center fixed;
-      background-size: cover;
-      margin: 0;
-      padding: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      font-size: 32px;
-      margin-bottom: 30px;
-      color: #fff;
-      text-shadow: 0 0 5px black;
-    }
-
-    #container {
-      display: flex;
-      flex-direction: row;
-      gap: 40px;
-      align-items: flex-start;
-    }
-
-    #board-container {
-      background: #ffffffcc;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-      border: 3px solid transparent;
-      transition: border-color 0.6s ease, box-shadow 0.6s ease;
-    }
-
-    #board-container.win {
-      border-color: gold;
-      box-shadow: 0 0 20px 5px gold;
-    }
-
-    #board {
-      display: grid;
-      grid-template-columns: repeat(7, 48px);
-      grid-template-rows: repeat(7, 48px);
-      gap: 6px;
-    }
-
-    .cell {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
-      font-weight: 600;
-      background: #fff;
-      border-radius: 6px;
-      border: 2px solid #ddd;
-      user-select: none;
-      touch-action: none;
-      cursor: pointer;
-      color: #333;
-      transition: background 0.3s, border-color 0.3s;
-    }
-
-    .selected {
-      background: #e0f0ff;
-      border-color: #7dbfff;
-    }
-
-    .found {
-      background: #cdeccd !important;
-      color: #1a1a1a;
-    }
-
-    #word-list {
-      font-size: 18px;
-      padding: 20px;
-      background: #ffffffcc;
-      border-radius: 16px;
-      border: 1px solid #ccc;
-      min-width: 200px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
-    }
-
-    #word-list li {
-      margin-bottom: 10px;
-      list-style: none;
-      font-weight: 500;
-    }
-
-    #word-list li.found-word {
-      text-decoration: line-through;
-      color: #555;
-      font-weight: 300;
-    }
-
-    #buttons {
-      margin-top: 25px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 15px;
-      border: none;
-      border-radius: 8px;
-      background: #0077cc;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #005fa3;
-    }
-
-    #message {
-      margin-top: 20px;
-      font-size: 26px;
-      font-weight: bold;
-      color: #28a745;
-      display: none;
-      animation: pop 0.6s ease;
-      text-shadow: 0 0 5px black;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(0.7); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-
-    @media (max-width: 768px) {
-      #container {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      #board {
-        grid-template-columns: repeat(7, minmax(36px, 1fr));
-        grid-template-rows: repeat(7, minmax(36px, 1fr));
-        gap: 4px;
-      }
-
-      .cell {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-      }
-
-      #word-list {
-        margin-top: 20px;
-      }
-
-      #buttons {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      button {
-        width: 100%;
-        max-width: 220px;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sopa de Letras</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #grid {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 20px;
+    user-select: none;
+  }
+  .cell {
+    width: 35px;
+    height: 35px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .found {
+    background: yellow;
+  }
+  #whatsappBtn {
+    display: none;
+    padding: 10px 20px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+  }
+</style>
 </head>
 <body>
-  <h1>Sopa de Letras</h1>
+<h2>Sopa de Letras</h2>
+<div id="grid"></div>
+<button id="whatsappBtn">Enviar por WhatsApp</button>
+<script>
+const words = [
+  "COLABORACION",
+  "COMUNICACION",
+  "CONFIANZA",
+  "CREATIVIDAD",
+  "RESOLUCION",
+  "OBSERVACION",
+  "CUESTIONAMIENTO",
+  "ASOCIACION",
+  "DINAMICA",
+  "APOYO"
+];
 
-  <!-- PISTAS -->
-  <textarea id="clues-source" style="display:none;">
-1. Trabajar juntos hacía un objetivo común
-2. Intercambio de información e ideas entre miembros del equipo
-3. Creencia en la capacidad y la integridad de los demás
-4. Generación de ideas nuevas y originales en grupo
-5. Capacidad para encontrar soluciones a problemas en equipo
-6. Habilidad para notar detalles y dinámicas grupales
-7. Plantear preguntas para profundizar en la compresión
-8. Unir esfuerzos y recursos para alcanzar metas comunes
-9. Interacción activa y efectiva entre los mienbros del equipo
-10. Proveer ayuda y respaldo a los compañeros en el trabajo
-  </textarea>
+// Determinar tamaño mínimo de grilla según palabra más larga
+const maxLen = Math.max(...words.map(w => w.length));
+const size = maxLen + 3;
 
-  <!-- PALABRAS -->
-  <textarea id="words-source" style="display:none;">
-COLABORACION
-COMUNICACION
-CONFIANZA
-CREATIVIDAD
-RESOLUCION
-OBSERVACION
-CUESTIONAMIENTO
-ASOCIACION
-DINAMICA
-APOYO
-  </textarea>
+document.getElementById("grid").style.gridTemplateColumns = `repeat(${size}, 35px)`;
 
-  <div id="container">
-    <div>
-      <div id="board-container">
-        <div id="board"></div>
-      </div>
+theGrid = Array(size).fill(null).map(()=>Array(size).fill(""));
 
-      <div id="buttons">
-        <button onclick="captureBoard()">📸 Capturar</button>
-        <button onclick="sendToWhatsApp()">📲 Enviar por WhatsApp</button>
-      </div>
+function placeWord(word) {
+  let placed = false;
+  while (!placed) {
+    const row = Math.floor(Math.random() * size);
+    const col = Math.floor(Math.random() * (size - word.length));
+    let fits = true;
 
-      <div id="message">🎉 ¡Felicidades! 🎉</div>
-    </div>
-
-    <ul id="word-list"></ul>
-  </div>
-
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-  <script>
-    let words = [];
-    let clues = [];
-    let foundWords = new Set();
-
-    document.addEventListener('DOMContentLoaded', () => {
-      words = document.getElementById("words-source").value
-        .split("\n").map(x => x.trim().toUpperCase()).filter(Boolean);
-
-      clues = document.getElementById("clues-source").value
-        .split("\n").map(x => x.trim()).filter(Boolean);
-
-      initGame();
-    });
-
-    function initGame() {
-      const gridSize = 7;
-      const board = document.getElementById("board");
-      const wordList = document.getElementById("word-list");
-
-      const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(""));
-      let path = [];
-
-      function updateWordList() {
-        wordList.innerHTML = "";
-        clues.forEach((clue, index) => {
-          const li = document.createElement("li");
-          li.textContent = clue;
-          li.id = `clue-${index}`;
-          if (foundWords.has(words[index])) li.classList.add("found-word");
-          wordList.appendChild(li);
-        });
+    for (let i = 0; i < word.length; i++) {
+      if (theGrid[row][col+i] !== "" && theGrid[row][col+i] !== word[i]) {
+        fits = false;
+        break;
       }
-
-      function placeWord(word) {
-        const directions = [[1,0],[0,1],[1,1],[-1,1]];
-        directions.sort(() => Math.random() - 0.5);
-
-        for (let [dx, dy] of directions) {
-          for (let y = 0; y < gridSize; y++) {
-            for (let x = 0; x < gridSize; x++) {
-              let valid = true;
-              for (let i = 0; i < word.length; i++) {
-                let nx = x + dx * i;
-                let ny = y + dy * i;
-                if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize || 
-                    (grid[ny][nx] !== "" && grid[ny][nx] !== word[i])) {
-                  valid = false;
-                  break;
-                }
-              }
-              if (valid) {
-                for (let i = 0; i < word.length; i++) {
-                  grid[y + dy*i][x + dx*i] = word[i];
-                }
-                return;
-              }
-            }
-          }
-        }
-      }
-
-      words.forEach(placeWord);
-      updateWordList();
-
-      board.innerHTML = "";
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          if (grid[y][x] === "") {
-            grid[y][x] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-          }
-          const cell = document.createElement("div");
-          cell.classList.add("cell");
-          cell.textContent = grid[y][x];
-          cell.dataset.x = x;
-          cell.dataset.y = y;
-          cell.addEventListener("click", () => handleClick(cell));
-          board.appendChild(cell);
-        }
-      }
-
-      function resetSelection() {
-        path.forEach(el => el.classList.remove("selected"));
-        path = [];
-      }
-
-      function getWordFromPath() {
-        return path.map(el => el.textContent).join("");
-      }
-
-      function checkWord() {
-        const word = getWordFromPath();
-        if (words.includes(word) && !foundWords.has(word)) {
-          path.forEach(el => el.classList.add("found"));
-          foundWords.add(word);
-
-          const index = words.indexOf(word);
-          document.getElementById(`clue-${index}`).classList.add("found-word");
-
-          if (foundWords.size === words.length) {
-            document.getElementById("message").style.display = "block";
-            document.getElementById("board-container").classList.add("win");
-            confetti();
-          }
-        }
-        resetSelection();
-      }
-
-      function handleClick(cell) {
-        if (path.includes(cell)) {
-          checkWord();
-          return;
-        }
-        cell.classList.add("selected");
-        path.push(cell);
-        if (words.includes(getWordFromPath())) checkWord();
-      }
-
-      window.captureBoard = function () {
-        html2canvas(document.querySelector("#board")).then(canvas => {
-          canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "sopa_de_letras.png";
-            a.click();
-          });
-        });
-      };
-
-      window.sendToWhatsApp = function () {
-        const list = Array.from(foundWords).join(', ');
-        const mensaje = encodeURIComponent(`Palabras encontradas: ${list}`);
-        const url = `https://wa.me/56994406706?text=${mensaje}`;
-        window.open(url, '_blank');
-      };
     }
-  </script>
+    if (!fits) continue;
 
+    for (let i = 0; i < word.length; i++) theGrid[row][col+i] = word[i];
+    placed = true;
+  }
+}
+
+words.forEach(placeWord);
+
+// Rellenar vacíos con letras aleatorias
+for (let r=0; r<size; r++) {
+  for (let c=0; c<size; c++) {
+    if (theGrid[r][c] === "") theGrid[r][c] = String.fromCharCode(65 + Math.floor(Math.random()*26));
+  }
+}
+
+// Render
+const gridDiv = document.getElementById("grid");
+const foundWords = new Set();
+
+for (let r=0; r<size; r++){
+  for (let c=0; c<size; c++){
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.textContent = theGrid[r][c];
+    cell.dataset.row = r;
+    cell.dataset.col = c;
+    gridDiv.appendChild(cell);
+  }
+}
+
+let selecting = false;
+let selection = [];
+
+gridDiv.addEventListener("mousedown", e => {
+  selecting = true;
+  selection = [];
+  mark(e.target);
+});
+
+gridDiv.addEventListener("mouseover", e => {
+  if (selecting) mark(e.target);
+});
+
+window.addEventListener("mouseup", () => {
+  selecting = false;
+  checkWord();
+  clearHighlights();
+});
+
+function mark(cell){
+  if (!cell.classList.contains("cell")) return;
+  cell.style.background = "#add8e6";
+  selection.push(cell);
+}
+
+function clearHighlights(){
+  document.querySelectorAll('.cell').forEach(c=>{
+    if (!c.classList.contains("found")) c.style.background = "white";
+  });
+}
+
+function checkWord(){
+  const str = selection.map(c=>c.textContent).join("");
+  const reverse = selection.map(c=>c.textContent).reverse().join("");
+
+  for (let w of words){
+    if (str === w || reverse === w){
+      foundWords.add(w);
+      selection.forEach(c=>c.classList.add("found"));
+    }
+  }
+
+  if (foundWords.size === words.length){
+    document.getElementById("whatsappBtn").style.display = "block";
+  }
+}
+</script>
 </body>
 </html>
+
