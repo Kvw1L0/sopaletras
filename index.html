@@ -15,7 +15,6 @@
     background-attachment: fixed;
     margin: 0;
     padding: 0;
-    position: absolut;
   }
 
   /* HEADER */
@@ -38,23 +37,24 @@
   /* CONTENEDOR GENERAL */
   .wrapper {
     max-width: 500px;
-    margin: 150px auto 50px auto;
+    margin: 0 auto 50px auto;
     padding: 20px 0;
     display: flex;
     flex-direction: column;
     gap: 20px;
   }
 
-  /* CONTENEDOR DE LA SOPA */
+  /* SOPA DE LETRAS */
   #soup-container {
-    width: 100%;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
     padding: 15px;
     background: transparent;
     border: 3px solid black;
     border-radius: 12px;
-    box-sizing: border-box;
-    margin-top: 70px;
-    position: fixed;
+    z-index: 5;
   }
 
   /* GRILLA */
@@ -110,6 +110,7 @@
     border-top: 4px solid black;
     padding: 12px 15px;
     box-sizing: border-box;
+    margin-top: calc(50px + 500px); /* debajo de la sopa */
   }
 
   #clue-panel h3 {
@@ -135,7 +136,8 @@
 <body>
 
 <div id="header">
-
+  <h1>Sopa de Letras</h1>
+  <img src="logo.png" alt="Logo">
 </div>
 
 <div class="wrapper">
@@ -164,10 +166,12 @@ let seleccion = [];
 let ultimaCelda = null;
 let completadas = [];
 
+// Crear grilla vacía
 function crearGrillaVacia() {
   grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(""));
 }
 
+// Insertar palabras
 function ponerPalabra(p) {
   const palabra = p.palabra;
   const horizontal = Math.random() > 0.5;
@@ -197,6 +201,7 @@ function ponerPalabra(p) {
   return true;
 }
 
+// Rellenar aleatoriamente
 function llenarRandom() {
   const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let y = 0; y < GRID_SIZE; y++) {
@@ -206,6 +211,7 @@ function llenarRandom() {
   }
 }
 
+// Renderizar grilla
 function renderGrid() {
   const gridDiv = document.getElementById("grid");
   gridDiv.innerHTML = "";
@@ -226,6 +232,7 @@ function renderGrid() {
   }
 }
 
+// Selección de celdas
 function esAdyacente(c1, c2) {
   if (!c1 || !c2) return true;
   const dx = Math.abs(c1.x - c2.x);
@@ -257,9 +264,9 @@ function toggleSeleccion(div) {
   verificarPalabra();
 }
 
+// Verificación de palabras
 function verificarPalabra() {
   const cadena = seleccion.map(c => c.letra).join("");
-
   for (const p of palabras) {
     if (cadena === p.palabra) {
       marcarCompletada(p.palabra);
@@ -282,11 +289,13 @@ function verificarPalabra() {
   }
 }
 
+// Marcar pista completada
 function marcarCompletada(palabra) {
   const li = document.querySelector(`li[data-pal="${palabra}"]`);
   if (li) li.classList.add("clue-done");
 }
 
+// Renderizar pistas
 function renderPistas() {
   const ul = document.getElementById("clue-list");
   ul.innerHTML = "";
@@ -298,7 +307,27 @@ function renderPistas() {
   }
 }
 
-function iniciar() {
+// Ajustar posición sopa
+function ajustarSopa() {
+  const header = document.getElementById('header');
+  const soup = document.getElementById('soup-container');
+  soup.style.top = (header.offsetHeight + 50) + 'px';
+}
+
+// Bloquear recarga de página
+window.addEventListener('beforeunload', (e) => {
+  e.preventDefault();
+  e.returnValue = '';
+});
+
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'F5') || (e.ctrlKey && e.key === 'r')) {
+    e.preventDefault();
+  }
+});
+
+// Inicializar solo una vez
+window.addEventListener('load', () => {
   crearGrillaVacia();
   palabras.forEach(p => {
     let ok = false;
@@ -307,30 +336,8 @@ function iniciar() {
   llenarRandom();
   renderGrid();
   renderPistas();
-}
-
-window.addEventListener('load', iniciar);
-window.addEventListener('resize', iniciar);
-
-// Bloquear recarga accidental
-window.addEventListener("beforeunload", function(e) {
-  e.preventDefault();
-  e.returnValue = ""; // la mayoría de los navegadores mostrarán un mensaje por defecto
+  ajustarSopa();
 });
-
-// Bloquear teclas F5 y Ctrl+R
-window.addEventListener("keydown", function(e) {
-  if ((e.key === "F5") || 
-      (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
-    e.preventDefault();
-  }
-});
-
-// Bloquear clic derecho para evitar recargar desde el menú contextual
-window.addEventListener("contextmenu", function(e) {
-  e.preventDefault();
-});
-
 </script>
 
 </body>
