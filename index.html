@@ -3,100 +3,122 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sopa de Letras</title>
+<title>Sopa de Letras - Eurofirms</title>
 
 <style>
   body {
     font-family: Arial, sans-serif;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f4;
   }
 
   /* HEADER */
   #header {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
   }
 
   #header h1 {
     margin: 0;
-    font-size: 32px;
+    font-size: 26px;
     color: #000;
   }
 
   #header img {
-    max-width: 150px;
-    margin-top: 8px;
+    max-width: 120px;
+    margin-top: 5px;
   }
 
   /* CONTENEDOR GENERAL */
   .wrapper {
     max-width: 500px;
     margin: 0 auto;
-    padding: 10px 15px;
+    padding: 10px;
+    box-sizing: border-box;
   }
 
   /* SOPA DE LETRAS */
   #soup-container {
-    margin-top: 20px;
-    padding: 15px;
-    background: transparent;
-    border: 3px solid black;
+    margin-top: 10px;
+    padding: 5px;
+    background: white;
+    border: 2px solid black;
     border-radius: 12px;
+    box-sizing: border-box;
+    width: 100%;
   }
 
   /* GRILLA */
-
-   .grid {
-  display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  gap: 4px;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr); /* 14 Columnas fijas */
+    gap: 1px;
+    width: 100%;
+  }
 
   .cell {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    
+    /* Tipografía responsiva para que no se rompa */
+    font-weight: bold;
+    font-size: clamp(10px, 3.5vw, 18px); 
+    color: #333;
+    
+    cursor: pointer;
+    user-select: none; /* Evita que se seleccione el texto nativo */
+    -webkit-tap-highlight-color: transparent; /* Quita el flash azul en móviles */
+    transition: background 0.2s ease, transform 0.1s;
+  }
 
-  background: #f4f4f4;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  .cell:active {
+    transform: scale(0.95);
+  }
 
-  font-weight: bold;
-  font-size: 20px;
-  user-select: none;
-  box-sizing: border-box;
-}
+  /* ESTADOS DE LA CELDA */
+  .cell.selected {
+    background-color: #ffe066 !important; /* Amarillo al seleccionar */
+    border-color: #ffd700;
+  }
+
+  .cell.found {
+    background-color: #8fff8f !important; /* Verde al encontrar */
+    color: #006400;
+    border-color: #7ecc7e;
+  }
+
   /* PANEL DE PISTAS */
   #clue-panel {
-    margin-top: 20px;
+    margin-top: 15px;
     background: white;
     border-top: 4px solid black;
     padding: 12px 15px;
     box-sizing: border-box;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
 
   #clue-panel h3 {
     margin: 0 0 8px;
+    font-size: 18px;
   }
 
   #clue-panel ul {
     margin: 0;
-    padding-left: 18px;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
-  #clue-panel li {
-    margin-bottom: 6px;
+  .found-text {
+    text-decoration: line-through;
+    color: #888;
   }
 </style>
 </head>
@@ -105,7 +127,8 @@
 
 <div id="header">
   <h1>Sopa de Letras</h1>
-  <img src="logo.png" alt="logo">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png" alt="logo" style="display:none;"> 
+  <div style="font-size:12px; color:#666; margin-top:5px;">eurofirms capacitación</div>
 </div>
 
 <div class="wrapper">
@@ -121,43 +144,40 @@
 
 <script>
 // -------------------------
-// CONFIGURACIÓN ORIGINAL
+// DATOS
 // -------------------------
 
 const palabras = [
-  
   "CREATIVIDAD",
   "APOYAR",
   "OBSERVAR",
   "RESOLVER",
   "COMUNICAR",
-  
 ];
 
 const pistas = [
-  "Intercambio de información e ideas entre miembros del equipo  ",
+    "Intercambio de información e ideas entre miembros del equipo  ",
   "Generación de ideas nuevas y originales en grupo   ",
   "Capacidad para encontrar soluciones a problemas en equipo",
   " Proveer soporte y respaldo a los compañeros en el trabajo ",
   "Habilidad para notar detalles y dinámicas grupales   ",
-  
 ];
 
 const gridSize = 14;
-
 let grid = [];
-let selectedCells = [];
-let isDragging = false;
+let currentSelection = []; // Almacena las celdas pulsadas temporalmente
 
 // -------------------------
-// CREAR GRILLA
+// INICIALIZACIÓN
 // -------------------------
 
-function crearGrid() {
+function iniciarJuego() {
   grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(""));
 
+  // 1. Colocar palabras
   palabras.forEach((palabra) => colocarPalabra(palabra));
 
+  // 2. Rellenar espacios vacíos
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   for (let r = 0; r < gridSize; r++) {
     for (let c = 0; c < gridSize; c++) {
@@ -167,17 +187,13 @@ function crearGrid() {
     }
   }
 
+  // 3. Renderizar
   renderGrid();
   renderPistas();
 }
 
-// -------------------------
-// COLOCAR PALABRA
-// -------------------------
-
 function colocarPalabra(palabra) {
   let placed = false;
-
   while (!placed) {
     const horizontal = Math.random() < 0.5;
     const row = Math.floor(Math.random() * gridSize);
@@ -197,7 +213,7 @@ function colocarPalabra(palabra) {
           placed = true;
         }
       }
-    } else {
+    } else { // Vertical
       if (row + palabra.length <= gridSize) {
         let fits = true;
         for (let i = 0; i < palabra.length; i++) {
@@ -216,7 +232,7 @@ function colocarPalabra(palabra) {
 }
 
 // -------------------------
-// RENDER GRILLA
+// RENDERIZADO
 // -------------------------
 
 function renderGrid() {
@@ -228,107 +244,89 @@ function renderGrid() {
       const cell = document.createElement("div");
       cell.classList.add("cell");
       cell.textContent = grid[r][c];
+      
+      // Guardamos coordenadas por si se necesitan, aunque ahora usamos el objeto DOM
       cell.dataset.row = r;
       cell.dataset.col = c;
 
-      cell.addEventListener("touchstart", touchStart);
-      cell.addEventListener("touchmove", touchMove);
-      cell.addEventListener("touchend", touchEnd);
-
-      cell.addEventListener("mousedown", mouseDown);
-      cell.addEventListener("mouseenter", mouseEnter);
-      cell.addEventListener("mouseup", mouseUp);
+      // ÚNICO EVENTO: CLICK (Funciona para touch y mouse igual)
+      cell.addEventListener("click", () => handleCellClick(cell));
 
       gridContainer.appendChild(cell);
     }
   }
 }
 
-// -------------------------
-// RENDER PISTAS
-// -------------------------
-
 function renderPistas() {
   const list = document.getElementById("clues-list");
   list.innerHTML = "";
-  pistas.forEach((p) => {
+  pistas.forEach((p, index) => {
     const li = document.createElement("li");
     li.textContent = p;
+    li.id = "pista-" + index;
     list.appendChild(li);
   });
 }
 
 // -------------------------
-// SELECCIÓN
+// LÓGICA DE JUEGO (TAP 1 a 1)
 // -------------------------
 
-function marcar(cell) {
-  if (!cell || selectedCells.includes(cell)) return;
-  cell.style.background = "#ffe066";
-  selectedCells.push(cell);
-}
+function handleCellClick(cell) {
+  // Si la celda ya es parte de una palabra encontrada, no hacer nada
+  if (cell.classList.contains("found")) return;
 
-function limpiar() {
-  selectedCells.forEach((c) => (c.style.background = "white"));
-  selectedCells = [];
-}
-
-// -------------------------
-// MOUSE
-// -------------------------
-
-function mouseDown(e) {
-  isDragging = true;
-  limpiar();
-  marcar(e.target);
-}
-
-function mouseEnter(e) {
-  if (isDragging) marcar(e.target);
-}
-
-function mouseUp() {
-  isDragging = false;
-  verificar();
-}
-
-// -------------------------
-// TOUCH
-// -------------------------
-
-function touchStart(e) {
-  e.preventDefault();
-  limpiar();
-  marcar(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY));
-}
-
-function touchMove(e) {
-  e.preventDefault();
-  marcar(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY));
-}
-
-function touchEnd() {
-  verificar();
-}
-
-// -------------------------
-// VERIFICAR PALABRA
-// -------------------------
-
-function verificar() {
-  const seleccion = selectedCells.map((c) => c.textContent).join("");
-
-  if (palabras.includes(seleccion)) {
-    selectedCells.forEach((c) => (c.style.background = "#8fff8f"));
+  // Lógica de Selección / Deselección
+  if (currentSelection.includes(cell)) {
+    // SI YA ESTABA SELECCIONADA: La quitamos (Deseleccionar)
+    cell.classList.remove("selected");
+    currentSelection = currentSelection.filter(c => c !== cell);
   } else {
-    limpiar();
+    // SI ES NUEVA: La agregamos
+    cell.classList.add("selected");
+    currentSelection.push(cell);
   }
 
-  selectedCells = [];
+  // Comprobar si formaron una palabra
+  verificarSeleccion();
+}
+
+function verificarSeleccion() {
+  // Construimos la palabra basada en el ORDEN de los clics
+  const palabraFormada = currentSelection.map(c => c.textContent).join("");
+
+  // Verificamos si existe en la lista (o invertida, opcional, aquí solo directa)
+  if (palabras.includes(palabraFormada)) {
+    marcarComoEncontrada(palabraFormada);
+  }
+}
+
+function marcarComoEncontrada(palabra) {
+  // 1. Cambiar estilo visual a "found" (verde)
+  currentSelection.forEach(cell => {
+    cell.classList.remove("selected");
+    cell.classList.add("found");
+    // Opcional: Animación pequeña
+    cell.style.transform = "scale(1.1)";
+    setTimeout(() => cell.style.transform = "scale(1)", 200);
+  });
+
+  // 2. Tachar la pista correspondiente
+  const index = palabras.indexOf(palabra);
+  if (index !== -1) {
+    const pistaLi = document.getElementById("pista-" + index);
+    if (pistaLi) pistaLi.classList.add("found-text");
+  }
+
+  // 3. Limpiar array de selección para la siguiente palabra
+  currentSelection = [];
 }
 
 // -------------------------
-crearGrid();
+// ARRANCAR
+// -------------------------
+iniciarJuego();
+
 </script>
 
 </body>
