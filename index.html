@@ -36,7 +36,7 @@
 
   /* CONTENEDOR GENERAL */
   .wrapper {
-    max-width: 500px;
+    max-width: 400px;
     margin: 0 auto 50px auto;
     padding: 20px 0;
     display: flex;
@@ -307,7 +307,8 @@ function iniciar() {
   const header = document.getElementById('header');
   const soup = document.getElementById('soup-container');
   soup.style.marginTop = (header.offsetHeight + 50) + 'px';
-}
+
+  window.addEventListener('load', iniciar);
 
 
 </script>
