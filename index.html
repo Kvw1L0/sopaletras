@@ -36,7 +36,7 @@
 
   /* CONTENEDOR GENERAL */
   .wrapper {
-    max-width: 400px;
+    max-width: 500px;
     margin: 0 auto 50px auto;
     padding: 20px 0;
     display: flex;
@@ -131,7 +131,7 @@
 
 <div id="header">
   <h1>Sopa de Letras</h1>
-  
+  <img src="logo.png" alt="Logo">
 </div>
 
 <div class="wrapper">
@@ -307,9 +307,9 @@ function iniciar() {
   const header = document.getElementById('header');
   const soup = document.getElementById('soup-container');
   soup.style.marginTop = (header.offsetHeight + 50) + 'px';
+}
 
-  window.addEventListener('load', iniciar);
-
+window.addEventListener('load', iniciar);
 
 </script>
 
