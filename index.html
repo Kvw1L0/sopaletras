@@ -57,8 +57,10 @@ body {
 /* GRILLA */
 .grid {
   display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(14, minmax(0, 1fr)); /* ← no revienta */
+  gap: 3px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cell {
