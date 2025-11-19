@@ -1,38 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sopa Militar</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sopa de Letras Fija</title>
 <style>
-  /* BLOQUEA TODO EL SCROLL DEL MUNDO */
   html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* ← elimina scroll */
-    height: 100vh;
-    background: url('fondo.jpg') center/cover no-repeat;
+    overflow: hidden; /* Bloquea cualquier scroll */
     font-family: Arial, sans-serif;
+    background-image: url('fondo.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
-  /* HEADER FIJO */
+  /* HEADER fijo arriba */
   #header {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
-    height: 120px; /* AJUSTA A TU TÍTULO Y LOGO */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+    background: rgba(255,255,255,0.8);
+    padding: 10px 0;
     z-index: 1000;
-    pointer-events: none; /* nadie lo toca */
   }
 
-  /* SOPA DE LETRAS – FIJA, MILITAR, INAMOVIBLE */
+  #header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #000;
+  }
+
+  #header img {
+    max-width: 150px;
+    margin-top: 10px;
+  }
+
+  /* SOPA DE LETRAS fija */
   #soup-container {
     position: fixed;
-    top: 160px;      /* SIEMPRE 50px BAJO EL HEADER */
+    top: 150px; /* fijo debajo del header */
     left: 50%;
     transform: translateX(-50%);
     width: 500px;
@@ -43,151 +54,144 @@
     z-index: 999;
   }
 
-  /* GRILLA */
-  .row {
-    display: flex;
-  }
-  .cell {
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
-    text-align: center;
-    line-height: 30px;
-    border: 1px solid #01afff;
-    color: #01afff;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 3px;
   }
 
-  /* PISTAS FIJAS */
+  .cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .cell.selected { background: #ffd54f; }
+  .cell.completed { background: #01afff; color: white; }
+
+  /* PANEL DE PISTAS fijo debajo de la sopa */
   #clue-panel {
     position: fixed;
-    top: 160px;
-    right: 30px;
-    width: 280px;
-    padding: 10px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 10px;
+    top: 550px; /* ajusta según altura de la sopa */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    background: white;
+    border-top: 4px solid black;
+    padding: 12px 15px;
+    box-sizing: border-box;
     z-index: 998;
   }
+
+  #clue-panel h3 { margin: 0 0 8px; }
+  #clue-panel ul { margin: 0; padding-left: 18px; }
+  #clue-panel li { margin-bottom: 6px; }
+  .clue-done { text-decoration: line-through; color: #01afff; font-weight: bold; }
 </style>
 </head>
-
 <body>
 
 <div id="header">
-  <img src="titulo.png" alt="Sopa de Letras">
+  <h1>Sopa de Letras</h1>
+  <img src="logo.png" alt="Logo">
 </div>
 
-<div id="soup-container"></div>
+<div id="soup-container">
+  <div id="grid" class="grid"></div>
+</div>
 
 <div id="clue-panel">
   <h3>Pistas</h3>
-  <ul id="clues"></ul>
+  <ul id="clue-list"></ul>
 </div>
 
 <script>
-/* -------------------------
-   BLOQUE TOTAL DE RECARGA
-   ------------------------- */
-window.addEventListener("beforeunload", function(e) {
-  e.preventDefault();
-  e.returnValue = "";
-});
-window.addEventListener("keydown", function(e) {
-  if (
-    e.key === "F5" ||
-    (e.ctrlKey && (e.key === "r" || e.key === "R")) ||
-    (e.metaKey && (e.key === "r" || e.key === "R"))
-  ) {
-    e.preventDefault();
-  }
-});
-window.addEventListener("contextmenu", function(e) {
-  e.preventDefault();
-});
-
-/* -------------------------
-   GENERACIÓN ÚNICA DE LA SOPA
-   ------------------------- */
-
-const palabras = ["FUEGO","AGUA","TIERRA","AIRE"];
-const pistas = [
-  "Elemento caliente que cocina",
-  "Cae del cielo",
-  "Se pisa al caminar",
-  "Lo respiras"
+const GRID_SIZE = 14;
+const palabras = [
+  { palabra: "RESOLVER", pista: "Capacidad para encontrar soluciones a problemas en equipo" },
+  { palabra: "COMUNICAR", pista: "Intercambio de información e ideas entre miembros del equipo" },
+  { palabra: "CREATIVIDAD", pista: "Generación de ideas nuevas y originales en grupo" },
+  { palabra: "APOYO", pista: "Proveer soporte y respaldo a los compañeros en el trabajo" },
+  { palabra: "OBSERVAR", pista: "Habilidad para notar detalles y dinámicas grupales" }
 ];
 
-const gridSize = 12;
 let grid = [];
 
 function crearGrillaVacia() {
-  grid = Array.from({ length: gridSize }, () =>
-    Array(gridSize).fill("")
-  );
+  grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(""));
 }
 
-function ponerPalabra(palabra) {
-  let dir = Math.random() < 0.5; // horizontal o vertical
-  let row, col;
+function ponerPalabra(p) {
+  const palabra = p.palabra;
+  const horizontal = Math.random() > 0.5;
+  let x = 0, y = 0;
 
-  if (dir) {
-    row = Math.floor(Math.random() * gridSize);
-    col = Math.floor(Math.random() * (gridSize - palabra.length));
-    for (let i = 0; i < palabra.length; i++) {
-      grid[row][col + i] = palabra[i];
-    }
+  if (horizontal) {
+    x = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
+    y = Math.floor(Math.random() * GRID_SIZE);
   } else {
-    col = Math.floor(Math.random() * gridSize);
-    row = Math.floor(Math.random() * (gridSize - palabra.length));
-    for (let i = 0; i < palabra.length; i++) {
-      grid[row + i][col] = palabra[i];
-    }
+    x = Math.floor(Math.random() * GRID_SIZE);
+    y = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
   }
+
+  for (let i = 0; i < palabra.length; i++) {
+    const xx = horizontal ? x + i : x;
+    const yy = horizontal ? y : y + i;
+    const existente = grid[yy][xx];
+    if (existente !== "" && existente !== palabra[i]) return false;
+  }
+
+  for (let i = 0; i < palabra.length; i++) {
+    const xx = horizontal ? x + i : x;
+    const yy = horizontal ? y : y + i;
+    grid[yy][xx] = palabra[i];
+  }
+
+  return true;
 }
 
 function llenarRandom() {
   const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (grid[r][c] === "") {
-        grid[r][c] = letras[Math.floor(Math.random() * letras.length)];
-      }
-    }
-  }
+  for (let y = 0; y < GRID_SIZE; y++)
+    for (let x = 0; x < GRID_SIZE; x++)
+      if (grid[y][x] === "") grid[y][x] = letras[Math.floor(Math.random() * letras.length)];
 }
 
 function renderGrid() {
-  const container = document.getElementById("soup-container");
-  container.innerHTML = "";
-  grid.forEach(row => {
-    const div = document.createElement("div");
-    div.className = "row";
-    row.forEach(letter => {
+  const gridDiv = document.getElementById("grid");
+  gridDiv.innerHTML = "";
+  for (let y = 0; y < GRID_SIZE; y++)
+    for (let x = 0; x < GRID_SIZE; x++) {
       const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.textContent = letter;
-      div.appendChild(cell);
-    });
-    container.appendChild(div);
-  });
+      cell.classList.add("cell");
+      cell.textContent = grid[y][x];
+      gridDiv.appendChild(cell);
+    }
 }
 
-function renderClues() {
-  const ul = document.getElementById("clues");
-  pistas.forEach(p => {
+function renderPistas() {
+  const ul = document.getElementById("clue-list");
+  palabras.forEach(p => {
     const li = document.createElement("li");
-    li.textContent = p;
+    li.textContent = p.pista;
     ul.appendChild(li);
   });
 }
 
-/* --- GENERAR LA SOPA UNA SOLA VEZ --- */
-window.addEventListener("load", () => {
+window.addEventListener('load', () => {
   crearGrillaVacia();
-  palabras.forEach(ponerPalabra);
+  palabras.forEach(p => { let ok=false; while(!ok) ok=ponerPalabra(p); });
   llenarRandom();
   renderGrid();
-  renderClues();
+  renderPistas();
 });
 </script>
 
