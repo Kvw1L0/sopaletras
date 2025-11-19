@@ -50,29 +50,33 @@
   }
 
   /* GRILLA */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(14, 1fr);
-    gap: 3px;
-    width: 100%;
-    box-sizing: border-box;
-  }
+
+   .grid {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 
   .cell {
-    aspect-ratio: 1 / 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    border: 1px solid #d0d0d0;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 18px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform .1s ease, background .15s ease;
-  }
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  font-weight: bold;
+  font-size: 20px;
+  user-select: none;
+  box-sizing: border-box;
+}
   /* PANEL DE PISTAS */
   #clue-panel {
     margin-top: 20px;
@@ -121,23 +125,22 @@
 // -------------------------
 
 const palabras = [
-  "CANTAR",
-  "PINTAR",
-  "CORRER",
-  "SALTAR",
-  "LEER",
-  "ESCRIBIR",
-  "SOÑAR"
+  
+  "CREATIVIDAD",
+  "APOYAR",
+  "OBSERVAR",
+  "RESOLVER",
+  "COMUNICAR",
+  
 ];
 
 const pistas = [
-  "Actividad que haces con la voz",
-  "Crear arte con colores",
-  "Moverte rápidamente con las piernas",
-  "Elevarse del suelo con impulso",
-  "Acción de interpretar un texto",
-  "Acción de plasmar palabras en un papel",
-  "Acción de imaginar dormido"
+  "Intercambio de información e ideas entre miembros del equipo  ",
+  "Generación de ideas nuevas y originales en grupo   ",
+  "Capacidad para encontrar soluciones a problemas en equipo"   ",
+  " Proveer soporte y respaldo a los compañeros en el trabajo ",
+  "Habilidad para notar detalles y dinámicas grupales   ",
+  
 ];
 
 const gridSize = 14;
