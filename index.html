@@ -1,313 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sopa de Letras</title>
 
 <style>
-   
-   /* --- GENERAL --- */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background-image: url('/fondo.jpg');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-/* --- HEADER --- */
-header {
-  text-align: center;
-  padding-top: 25px;
-  padding-bottom: 10px;
-}
-
-h1 {
-  font-size: 32px;
-  margin: 0;
-  font-weight: 700;
-}
-
-/* --- LOGO --- */
-#logo {
-  width: 180px;
-  margin-top: 8px;
-}
-
-/* --- CONTENEDOR SOPA --- */
-#soup-container {
-  position: relative;        /* YA NO ES FIXED */
-  margin: 22px auto 0;       /* distancia elegante con el logo */
-  width: 95%;
-  max-width: 520px;
-
-  background: white;
-  padding: 18px;
-  border: 3px solid black;
-  border-radius: 15px;
-
-  box-sizing: border-box;
-}
-
-/* --- GRID DE LETRAS --- */
-#grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 5px;
-  justify-items: center;
-  margin: auto;
-}
-
-/* --- LETRA INDIVIDUAL --- */
-.letter {
-  width: 36px;
-  height: 36px;
-  line-height: 36px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
-  border-radius: 6px;
-  background: #f4f4f4;
-  border: 1px solid #ccc;
-  user-select: none;
-}
-
-/* letra seleccionada */
-.selected {
-  background: yellow;
-}
-
-/* palabra encontrada */
-.found {
-  background: #7aff7a;
-}
-
-/* --- PISTAS --- */
-#clues {
-  width: 90%;
-  max-width: 520px;
-  margin: 25px auto;
-  padding-bottom: 100px;
-}
-
-#clues h2 {
-  margin-bottom: 10px;
-  font-size: 22px;
-}
-
-#clues ul {
-  padding-left: 20px;
-}
-
-#clues li {
-  font-size: 18px;
-  margin-bottom: 8px;
-}
-
-/* --- MOBILE TWEAKS --- */
-@media (max-width: 450px) {
-  .letter {
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    font-size: 18px;
+  /* FONDO GENERAL */
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('fondo.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin: 0;
+    padding: 0;
   }
 
-  #grid {
+  /* WRAPPER: evita saltos y separa suavemente del viewport */
+  .wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px 25px 15px; /* espacio bonito arriba y costados */
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* respiración visual */
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+  }
+
+  /* CONTENEDOR DE LA SOPA */
+  #soup-container {
+    background: rgba(255, 255, 255, 0.45);
+    padding: 18px;
+    border-radius: 14px;
+    border: 3px solid black;
+    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* GRILLA */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
     gap: 4px;
   }
-}
-   
 
+  .grid div {
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 6px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* CELDA SELECCIONADA */
+  .selected {
+    background: gold;
+    color: black;
+  }
+
+  /* CELDA CORRECTA */
+  .found {
+    background: limegreen;
+    color: black;
+  }
+
+  /* LISTA DE PISTAS */
+  #word-list {
+    background: rgba(255,255,255,0.3);
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #000;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  }
+
+  #word-list li {
+    margin-bottom: 5px;
+    font-size: 18px;
+  }
 </style>
+
 </head>
 <body>
 
-<div id="header">
-  <h1>SOPA DE LETRAS</h1>
-  <img src="logo.png" alt="Logo">
-</div>
-
 <div class="wrapper">
+
+  <header>
+    <h1>Sopa de Letras</h1>
+  </header>
+
   <div id="soup-container">
-    <div id="grid" class="grid"></div>
+    <div class="grid" id="grid"></div>
   </div>
 
-  <div id="clue-panel">
-    <h3>Pistas</h3>
-    <ul id="clue-list"></ul>
-  </div>
+  <ul id="word-list"></ul>
+
 </div>
 
 <script>
-const GRID_SIZE = 14;
-const palabras = [
-  { palabra: "RESOLVER", pista: "Capacidad para encontrar soluciones a problemas en equipo" },
-  { palabra: "COMUNICAR", pista: "Intercambio de información e ideas entre miembros del equipo" },
-  { palabra: "CREATIVIDAD", pista: "Generación de ideas nuevas y originales en grupo" },
-  { palabra: "APOYAR", pista: "Proveer soporte y respaldo a los compañeros en el trabajo" },
-  { palabra: "OBSERVAR", pista: "Habilidad para notar detalles y dinámicas grupales" }
-];
+  const palabras = [
+    { pista: "Acción de correr rápido", palabra: "CORRER" },
+    { pista: "Acción de pensar con calma", palabra: "PENSAR" },
+    { pista: "Acción de saltar hacia arriba", palabra: "SALTAR" }
+  ];
 
-let grid = [];
-let seleccion = [];
-let ultimaCelda = null;
-let completadas = [];
+  const gridSize = 7;
 
-/* === GRILLA === */
-function crearGrillaVacia() {
-  grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(""));
-}
+  const grid = document.getElementById("grid");
+  const wordList = document.getElementById("word-list");
 
-function ponerPalabra(p) {
-  const palabra = p.palabra;
-  const horizontal = Math.random() > 0.5;
-  let x = 0, y = 0;
-
-  if (horizontal) {
-    x = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
-    y = Math.floor(Math.random() * GRID_SIZE);
-  } else {
-    x = Math.floor(Math.random() * GRID_SIZE);
-    y = Math.floor(Math.random() * (GRID_SIZE - palabra.length));
+  // Mostrar pistas
+  function renderPistas() {
+    wordList.innerHTML = "";
+    palabras.forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = p.pista;
+      wordList.appendChild(li);
+    });
   }
 
-  for (let i = 0; i < palabra.length; i++) {
-    const xx = horizontal ? x + i : x;
-    const yy = horizontal ? y : y + i;
-    const existente = grid[yy][xx];
-    if (existente !== "" && existente !== palabra[i]) return false;
+  // Crear matriz vacía
+  function crearMatriz() {
+    return Array.from({ length: gridSize }, () =>
+      Array.from({ length: gridSize }, () => "")
+    );
   }
 
-  for (let i = 0; i < palabra.length; i++) {
-    const xx = horizontal ? x + i : x;
-    const yy = horizontal ? y : y + i;
-    grid[yy][xx] = palabra[i];
-  }
-  return true;
-}
-
-function llenarRandom() {
-  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
-      if (grid[y][x] === "") grid[y][x] = letras[Math.floor(Math.random() * letras.length)];
-    }
-  }
-}
-
-function renderGrid() {
-  const gridDiv = document.getElementById("grid");
-  gridDiv.innerHTML = "";
-  for (let y = 0; y < GRID_SIZE; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
-      const cell = document.createElement("div");
-      cell.classList.add("cell");
-      cell.dataset.x = x;
-      cell.dataset.y = y;
-      cell.textContent = grid[y][x];
-
-      if (completadas.find(c => c.x === x && c.y === y)) cell.classList.add("completed");
-
-      cell.addEventListener("click", () => toggleSeleccion(cell));
-      gridDiv.appendChild(cell);
-    }
-  }
-}
-
-/* === SELECCIÓN === */
-function esAdyacente(c1, c2) {
-  if (!c1 || !c2) return true;
-  const dx = Math.abs(c1.x - c2.x);
-  const dy = Math.abs(c1.y - c2.y);
-  return dx <= 1 && dy <= 1;
-}
-
-function toggleSeleccion(div) {
-  const x = parseInt(div.dataset.x);
-  const y = parseInt(div.dataset.y);
-  const celda = { div, x, y, letra: div.textContent };
-
-  if (completadas.find(c => c.x === x && c.y === y)) return;
-
-  const idx = seleccion.findIndex(c => c.div === div);
-  if (idx >= 0) {
-    div.classList.remove("selected");
-    seleccion.splice(idx, 1);
-    ultimaCelda = seleccion[seleccion.length - 1] || null;
-    return;
+  // Insertar palabras horizontalmente (simple)
+  function insertarPalabras(matriz) {
+    palabras.forEach(p => {
+      const row = Math.floor(Math.random() * gridSize);
+      let col = Math.floor(Math.random() * (gridSize - p.palabra.length));
+      for (let i = 0; i < p.palabra.length; i++) {
+        matriz[row][col + i] = p.palabra[i];
+      }
+    });
+    return matriz;
   }
 
-  if (!esAdyacente(ultimaCelda, celda)) return;
-
-  div.classList.add("selected");
-  seleccion.push(celda);
-  ultimaCelda = celda;
-
-  verificarPalabra();
-}
-
-function verificarPalabra() {
-  const cadena = seleccion.map(c => c.letra).join("");
-  for (const p of palabras) {
-    if (cadena === p.palabra) {
-      marcarCompletada(p.palabra);
-      seleccion.forEach(c => {
-        if (!completadas.find(cc => cc.x === c.x && cc.y === c.y)) {
-          completadas.push({x: c.x, y: c.y});
-          c.div.classList.add("completed");
-          c.div.style.animation = 'none';
-          c.div.offsetHeight;
-          c.div.style.animation = 'popGlow 0.4s ease-out';
+  // Rellenar con letras random
+  function rellenarMatriz(matriz) {
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let r = 0; r < gridSize; r++) {
+      for (let c = 0; c < gridSize; c++) {
+        if (matriz[r][c] === "") {
+          matriz[r][c] = letras[Math.floor(Math.random() * letras.length)];
         }
-      });
-      seleccion.forEach(c => c.div.classList.remove("selected"));
-      seleccion = [];
-      ultimaCelda = null;
-      return;
+      }
     }
+    return matriz;
   }
-}
 
-function marcarCompletada(palabra) {
-  const li = document.querySelector(`li[data-pal="${palabra}"]`);
-  if (li) li.classList.add("clue-done");
-}
-
-/* === PISTAS === */
-function renderPistas() {
-  const ul = document.getElementById("clue-list");
-  ul.innerHTML = "";
-  for (const p of palabras) {
-    const li = document.createElement("li");
-    li.textContent = p.pista;
-    li.dataset.pal = p.palabra;
-    ul.appendChild(li);
+  // Renderizar grilla
+  function renderGrid(matriz) {
+    grid.innerHTML = "";
+    matriz.forEach((fila, r) => {
+      fila.forEach((letra, c) => {
+        const cell = document.createElement("div");
+        cell.textContent = letra;
+        grid.appendChild(cell);
+      });
+    });
   }
-}
 
-/* === INICIALIZACIÓN === */
-function iniciar() {
-  crearGrillaVacia();
-  palabras.forEach(p => {
-    let ok = false;
-    while (!ok) ok = ponerPalabra(p);
-  });
-  llenarRandom();
-  renderGrid();
+  // Generar sopa completa
+  const matriz = rellenarMatriz(insertarPalabras(crearMatriz()));
+  renderGrid(matriz);
   renderPistas();
-
-  // Ajusta margen del soup-container para que quede debajo del header
-  const header = document.getElementById('header');
-  const soup = document.getElementById('soup-container');
-  soup.style.marginTop = (header.offsetHeight + 50) + 'px';
-}
-
-window.addEventListener('load', iniciar);
-
 </script>
 
 </body>
