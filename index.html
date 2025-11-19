@@ -44,14 +44,12 @@
     gap: 20px;
   }
 
-  /* CONTENEDOR DE LA SOPA */
+  /* SOPA DE LETRAS */
   #soup-container {
-    width: 100%;
     padding: 15px;
     background: transparent;
     border: 3px solid black;
     border-radius: 12px;
-    box-sizing: border-box;
   }
 
   /* GRILLA */
@@ -133,7 +131,7 @@
 
 <div id="header">
   <h1>Sopa de Letras</h1>
-  <img src="logo.png" alt="Logo Eurifirm">
+  
 </div>
 
 <div class="wrapper">
@@ -162,6 +160,7 @@ let seleccion = [];
 let ultimaCelda = null;
 let completadas = [];
 
+/* === GRILLA === */
 function crearGrillaVacia() {
   grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(""));
 }
@@ -191,7 +190,6 @@ function ponerPalabra(p) {
     const yy = horizontal ? y : y + i;
     grid[yy][xx] = palabra[i];
   }
-
   return true;
 }
 
@@ -207,7 +205,6 @@ function llenarRandom() {
 function renderGrid() {
   const gridDiv = document.getElementById("grid");
   gridDiv.innerHTML = "";
-
   for (let y = 0; y < GRID_SIZE; y++) {
     for (let x = 0; x < GRID_SIZE; x++) {
       const cell = document.createElement("div");
@@ -224,6 +221,7 @@ function renderGrid() {
   }
 }
 
+/* === SELECCIÓN === */
 function esAdyacente(c1, c2) {
   if (!c1 || !c2) return true;
   const dx = Math.abs(c1.x - c2.x);
@@ -257,11 +255,9 @@ function toggleSeleccion(div) {
 
 function verificarPalabra() {
   const cadena = seleccion.map(c => c.letra).join("");
-
   for (const p of palabras) {
     if (cadena === p.palabra) {
       marcarCompletada(p.palabra);
-
       seleccion.forEach(c => {
         if (!completadas.find(cc => cc.x === c.x && cc.y === c.y)) {
           completadas.push({x: c.x, y: c.y});
@@ -271,7 +267,6 @@ function verificarPalabra() {
           c.div.style.animation = 'popGlow 0.4s ease-out';
         }
       });
-
       seleccion.forEach(c => c.div.classList.remove("selected"));
       seleccion = [];
       ultimaCelda = null;
@@ -285,6 +280,7 @@ function marcarCompletada(palabra) {
   if (li) li.classList.add("clue-done");
 }
 
+/* === PISTAS === */
 function renderPistas() {
   const ul = document.getElementById("clue-list");
   ul.innerHTML = "";
@@ -296,6 +292,7 @@ function renderPistas() {
   }
 }
 
+/* === INICIALIZACIÓN === */
 function iniciar() {
   crearGrillaVacia();
   palabras.forEach(p => {
@@ -305,6 +302,11 @@ function iniciar() {
   llenarRandom();
   renderGrid();
   renderPistas();
+
+  // Ajusta margen del soup-container para que quede debajo del header
+  const header = document.getElementById('header');
+  const soup = document.getElementById('soup-container');
+  soup.style.marginTop = (header.offsetHeight + 50) + 'px';
 }
 
 window.addEventListener('load', iniciar);
